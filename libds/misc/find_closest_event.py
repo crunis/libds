@@ -23,7 +23,7 @@ def find_closest_event(df, pid, _dt, inclusive=False, prefix=""):
     events = df[(df.pid == pid) & date_cond]
 
     if len(events) == 0:
-        return pd.Series({f"{prefix}_": False, f"{prefix}_days": 1000})
+        return pd.Series({f"{prefix}_": False, f"{prefix}_days": None})
 
     event_dt = events.sort_values(by="_dt", ascending=False).iloc[0]._dt
     days = (_dt - event_dt).days

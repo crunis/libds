@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 from datetime import datetime
-from libds.find_closest_event import find_closest_event
+from libds.misc.find_closest_event import find_closest_event
 
 
 class TestFindClosestEvent(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestFindClosestEvent(unittest.TestCase):
     def test_find_closest_event_no_event(self):
         result = find_closest_event(self.df, 1, datetime(2022, 12, 31))
         self.assertFalse(result["_"])
-        self.assertEqual(result["_days"], 1000)
+        self.assertEqual(result["_days"], None)
 
     def test_find_closest_event_with_prefix(self):
         result = find_closest_event(self.df, 2, datetime(2023, 1, 4), prefix="test")
