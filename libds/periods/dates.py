@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+
 def dates_to_ordinal(datetimes):
     """
     Converts a list of dates to a list of ordinal values.
@@ -24,3 +27,25 @@ def dates_to_ordinal_with_values(datetimes, values, drop_duplicates=True):
                     uniq_values.append(values[i])
 
     return uniq_ordinals, uniq_values
+
+
+def dates_fill_period(start_date, end_date):
+    """
+    Returns a list of dates between the start_date and end_date, inclusive.
+    """
+    days = (end_date.date() - start_date.date()).days
+    return [start_date + timedelta(days=i) for i in range(days + 1)]
+
+
+def df_fill_period(df):
+    """
+    Generates list of dates from start_dt to end_dt from all DataFrame rows
+    Avoids duplicates and sorts them
+    """
+    dates = []
+    for _, r in df.iterrows():
+        dates += dates_fill_period(r.start_dt, r.end_dt)
+    dates = list(set(dates))
+    dates.sort()
+
+    return dates

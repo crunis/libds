@@ -1,2 +1,3 @@
 from .compute_periods import compute_periods
-from .dates_to_ordinal import dates_to_ordinal, dates_to_ordinal_with_values
+from .compute_periods_simple import compute_periods_simple
+from .dates import dates_to_ordinal, dates_to_ordinal_with_values
