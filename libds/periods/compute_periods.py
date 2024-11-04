@@ -1,4 +1,4 @@
-def compute_periods(ordinals, values, prefix=None):
+def compute_periods(ordinals, values, prefix=None, extra_stats=False):
     """
     Compute the periods and statistics based on the given ordinals and values.
     Args:
@@ -16,6 +16,10 @@ def compute_periods(ordinals, values, prefix=None):
     curr_state = False
     consec_days = 0
     max_consec_days = 0
+    days_since_last = 0
+    interval_days = []
+    interval_starts = []
+    interval_ends = []
 
     for ordinal, value in zip(ordinals, values):
         if value:
@@ -28,17 +32,32 @@ def compute_periods(ordinals, values, prefix=None):
                 consec_days = 1
                 periods += 1
                 curr_state = True
+                interval_days.append(days_since_last)
+                interval_starts.append(ordinal)
+                days_since_last = 0
         else:
-            curr_state = False
+            days_since_last += 1
+            if curr_state:
+                interval_ends.append(last_ordinal)
+                curr_state = False
 
         last_ordinal = ordinal
         max_consec_days = max(max_consec_days, consec_days)
 
-    if prefix is not None:
-        return {
-            f"{prefix}_days": days,
-            f"{prefix}_periods": periods,
-            f"{prefix}_max_consec_days": max_consec_days,
-        }
+    if curr_state:
+        interval_ends.append(last_ordinal)
 
-    return dict(days=days, periods=periods, max_consec_days=max_consec_days)
+    prefix = f"{prefix}_" if prefix else ""
+
+    res = {
+            f"{prefix}days": days,
+            f"{prefix}periods": periods,
+            f"{prefix}max_consec_days": max_consec_days,
+            }
+    
+    if extra_stats:
+        res[f"{prefix}interval_days"] = interval_days
+        res[f"{prefix}interval_starts"] = interval_starts
+        res[f"{prefix}interval_ends"] = interval_ends
+
+    return res
