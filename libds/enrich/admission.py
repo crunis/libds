@@ -16,3 +16,12 @@ def get_admission(df: pd.DataFrame, pid: int, _dt: pd.DatetimeTZDtype, strict: b
     res = find_interval_by_date(df, _dt, pid, strict)
 
     return res
+
+
+def get_admission_id(df: pd.DataFrame, pid: int, _dt: pd.DatetimeTZDtype, strict: bool = True) -> pd.Series:
+    res = find_interval_by_date(df, _dt, pid, strict)
+
+    if res is None:
+        return None
+
+    return res._id

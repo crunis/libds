@@ -23,5 +23,7 @@ def find_interval_by_date(df, _dt, pid=None, strict=True):
 
     if strict:
         assert len(res) == 1
+    elif len(res) == 0:
+        return None
     
     return res.iloc[0]
