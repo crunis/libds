@@ -49,3 +49,15 @@ def df_fill_period(df):
     dates.sort()
 
     return dates
+
+
+def unify_dates(datetimes, days=1):
+    datetimes = datetimes.copy() # Avoid affecting original list
+    datetimes.sort()
+    dates = list(map(lambda x: x.date(), datetimes)) # Extract dates from datetimes
+    # We always keep first date
+    conditions = [True] + [ ((dates[i+1] - dates[i]).days>days) for i in range(len(dates)-1) ]
+    datetimes_selected = [ datetime for (condition, datetime) in zip(conditions, datetimes) if condition ] 
+
+    return datetimes_selected 
+    

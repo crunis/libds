@@ -1,6 +1,6 @@
 from .compute_periods import compute_periods
 from .compute_periods_simple import compute_periods_simple
-from .dates import dates_to_ordinal, dates_to_ordinal_with_values
+from .dates import dates_to_ordinal, dates_to_ordinal_with_values, unify_dates
 from .get_closest_event import get_closest_event
 
 def find_interval_by_date(df, _dt, pid=None, strict=True):

@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
 
-from libds.periods import get_closest_event
+from libds.periods import get_closest_event, unify_dates
 
 dates = [datetime(2020, 1, 1), 
          datetime(2020, 1, 11), 
@@ -44,3 +44,14 @@ def test_get_closest_event_days_after():
 
     assert res["_id"] == 2
     assert res["_dt"] == datetime(2020, 1, 21)
+
+
+def test_unify_dates():
+    dates = ['2020-01-01', '2020-01-02', '2020-01-04', '2020-01-07']
+    dates = list(map(pd.to_datetime, dates))
+
+    res = unify_dates(dates, days=1)
+    assert res == [datetime(2020, 1, 1), datetime(2020, 1, 4), datetime(2020, 1, 7)]
+
+    res = unify_dates(dates, days=2)
+    assert res == [datetime(2020, 1, 1), datetime(2020, 1, 7)]
