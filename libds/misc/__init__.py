@@ -15,4 +15,4 @@ def correct_fillna(df, value):
 
 
 def flatten_text(text):
-    return unidecode(text).lower()
+    return unidecode(text).lower().strip()
