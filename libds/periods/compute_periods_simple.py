@@ -1,3 +1,9 @@
+import pandas as pd
+
+from libds.periods import dates_fill_period
+from libds.periods import dates_to_ordinal
+
+
 def compute_periods_simple(ordinals, prefix=""):
     """
     Compute the number of periods, total days, and maximum consecutive days in a list of ordinals.
@@ -32,3 +38,21 @@ def compute_periods_simple(ordinals, prefix=""):
         max_consec_days = max(max_consec_days, curr_consec_days)
 
     return {f"{prefix}days": days, f"{prefix}periods": periods, f"{prefix}max_consec_days": max_consec_days}
+
+
+def df_w_intervals_compute_periods_simple(df, pid, start_dt, end_dt, prefix='treat_'):
+    data = df.query("(pid == @pid) & (start_dt <= @end_dt) & (end_dt >= @start_dt)")
+
+    dates = sorted(list({
+        date
+        for (_, r) in data.iterrows()
+        for date in dates_fill_period(r.start_dt, r.end_dt)
+    }))
+    dates = list(filter(lambda r: (r >= start_dt) & (r <= end_dt), dates))
+
+    if dates:
+        period_stats = compute_periods_simple(dates_to_ordinal(dates), prefix=prefix)
+    else:
+        period_stats = compute_periods_simple([], prefix=prefix)
+
+    return pd.Series(period_stats)
