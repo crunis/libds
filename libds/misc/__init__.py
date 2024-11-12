@@ -1,4 +1,5 @@
 import pandas as pd
+from unidecode import unidecode
 
 from .find_closest_event import find_closest_event
 from .drop_close_dates import drop_close_dates
@@ -11,3 +12,7 @@ def correct_fillna(df, value):
         df = df.fillna(value).infer_objects()
         
     return df
+
+
+def flatten_text(text):
+    return unidecode(text).lower()
