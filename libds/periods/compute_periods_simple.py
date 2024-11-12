@@ -1,4 +1,4 @@
-def compute_periods_simple(ordinals):
+def compute_periods_simple(ordinals, prefix=""):
     """
     Compute the number of periods, total days, and maximum consecutive days in a list of ordinals.
 
@@ -31,4 +31,4 @@ def compute_periods_simple(ordinals):
         prev_ordinal = i
         max_consec_days = max(max_consec_days, curr_consec_days)
 
-    return dict(days=days, periods=periods, max_consec_days=max_consec_days)
+    return {f"{prefix}days": days, f"{prefix}periods": periods, f"{prefix}max_consec_days": max_consec_days}
