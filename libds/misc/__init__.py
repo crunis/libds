@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas.errors import OptionError
 from unidecode import unidecode
 
 from .find_closest_event import find_closest_event
@@ -10,7 +11,7 @@ def correct_fillna(df, value):
         # Try using the future behaviour option if it exists
         with pd.option_context("future.no_silent_downcasting", True):
             df = df.fillna(value).infer_objects()
-    except ValueError:
+    except OptionError:
         df = df.fillna(value).infer_objects()
         
     return df
