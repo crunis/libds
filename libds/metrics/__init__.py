@@ -36,6 +36,14 @@ def n1p(y, y_pred, **kwargs):
     tn, fp, fn, tp, n0, n1 = get_items(y, y_pred)
     return round(n1*100 / (n0+n1),2)
 
+def pos0(y, y_pred, **kwargs):
+    tn, fp, fn, tp, n0, n1 = get_items(y, y_pred)
+    return fn
+
+def pos1(y, y_pred, **kwargs):
+    tn, fp, fn, tp, n0, n1 = get_items(y, y_pred)
+    return tp
+
 def pos0p(y, y_pred, **kwargs):
     tn, fp, fn, tp, n0, n1 = get_items(y, y_pred)
     return round(fn*100/n0,2)
@@ -66,6 +74,8 @@ METRICS = [
     ('n1', n1),
     ('n0%', n0p),
     ('n1%', n1p),
+    ('pos0', pos0),
+    ('pos1', pos1),
     ('pos0%', pos0p),
     ('pos1%', pos1p),
     ('sens', sens),
