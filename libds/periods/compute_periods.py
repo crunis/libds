@@ -1,4 +1,6 @@
-def compute_periods(ordinals, values, prefix=None, extra_stats=False):
+from . import fill_gaps
+
+def compute_periods(ordinals, values, mode="true_between", prefix=None, extra_stats=False):
     """
     Compute the periods and statistics based on the given ordinals and values.
     Args:
@@ -9,43 +11,50 @@ def compute_periods(ordinals, values, prefix=None, extra_stats=False):
             - days (int): The total number of positive days.
             - periods (int): The total number of periods.
             - max_consec_days (int): The maximum number of consecutive positive days.
+    
+    If there are gaps, they are filled with True only between Trues.
     """
-    last_ordinal = ordinals[0] - 1
-    days = 0  # total days positive
+
+    ordinals, values = fill_gaps(ordinals, values, mode=mode)
+
+    prev_ordinal = ordinals[0] - 1
+    days = 0
     periods = 0
     curr_state = False
-    consec_days = 0
+    current_interval_days = 0
     max_consec_days = 0
-    days_since_last = 0
-    interval_days = []
+    days_since_last_interval = 0
+
     interval_starts = []
     interval_ends = []
+    interval_days = []
+    interval_days_since_last = []
 
     for ordinal, value in zip(ordinals, values):
         if value:
-            if curr_state:
-                # Add interval only if previous was True
-                days += ordinal - last_ordinal
-                consec_days += ordinal - last_ordinal
-            else:
-                days += 1
-                consec_days = 1
+            days += 1
+            current_interval_days += 1
+            if value != curr_state:
+                # SWITCH to Positive
                 periods += 1
-                curr_state = True
-                interval_days.append(days_since_last)
                 interval_starts.append(ordinal)
-                days_since_last = 0
+                interval_days_since_last.append(days_since_last_interval)
+                days_since_last_interval = 0
         else:
-            days_since_last += 1
-            if curr_state:
-                interval_ends.append(last_ordinal)
-                curr_state = False
+            days_since_last_interval += 1
+            if value != curr_state:
+                # SWITCH to Negative
+                interval_ends.append(prev_ordinal)
+                interval_days.append(current_interval_days)
+                current_interval_days = 0
 
-        last_ordinal = ordinal
-        max_consec_days = max(max_consec_days, consec_days)
+        curr_state = value
+        prev_ordinal = ordinal
+        max_consec_days = max(max_consec_days, current_interval_days)
 
     if curr_state:
-        interval_ends.append(last_ordinal)
+        interval_ends.append(prev_ordinal)
+        interval_days.append(current_interval_days)
 
     prefix = f"{prefix}_" if prefix else ""
 
@@ -56,8 +65,9 @@ def compute_periods(ordinals, values, prefix=None, extra_stats=False):
             }
     
     if extra_stats:
-        res[f"{prefix}interval_days"] = interval_days
         res[f"{prefix}interval_starts"] = interval_starts
         res[f"{prefix}interval_ends"] = interval_ends
-
+        res[f"{prefix}interval_days"] = interval_days
+        res[f"{prefix}interval_days_since_last"] = interval_days_since_last
+        
     return res
