@@ -7,7 +7,9 @@ def compute_periods_with_margins(
     ordinals, 
     values, 
     initial_margin=0, 
-    cooloff=0):
+    cooloff=0,
+    add_cooloff=False
+    ):
     data = compute_periods(ordinals, values, extra_stats=True)
 
     if data['periods'] == 0:
@@ -36,5 +38,13 @@ def compute_periods_with_margins(
                 del data['interval_ends'][i-1]
                 del data['interval_days_since_last'][i]
                 del data['interval_days'][i]
+            elif add_cooloff:
+                # interval i cool_off affects:
+                # - interval_days_since_last: i, substract
+                # - interval_ends: i-1, add
+                # - inteval_days: i-1, add
+                data['interval_days_since_last'][i] -= cooloff
+                data['interval_ends'][i-1] += cooloff
+                data['interval_days'][i-1] += cooloff
 
     return data 
