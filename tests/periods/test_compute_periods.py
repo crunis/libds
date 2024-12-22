@@ -99,3 +99,17 @@ def test_interval_days():
     values = [True, False, False, True, True, False, True]
     res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
     assert res["interval_days"] ==  [1, 4, 1]
+
+
+def test_no_periods():
+    ordinals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    values = [False, False, False, False, False, False, False, False, False, False]
+
+    res = compute_periods(ordinals, values, extra_stats=True)
+    assert res["days"] == 0
+    assert res["periods"] == 0
+    assert res["max_consec_days"] == 0
+    assert res['interval_starts'] == []
+    assert res['interval_ends'] == []
+    assert res['interval_days'] == []
+    assert res['interval_days_since_last'] == []

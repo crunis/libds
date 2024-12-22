@@ -10,6 +10,9 @@ def compute_periods_with_margins(
     cooloff=0):
     data = compute_periods(ordinals, values, extra_stats=True)
 
+    if data['periods'] == 0:
+        return data
+
     # Initial margin
     if data['interval_days_since_last'][0] < initial_margin:
         # Substract the first interval days from total days

@@ -73,3 +73,17 @@ def test_cooloff2():
     assert res["interval_ends"] == [17]
     assert res["interval_days"] == [18]
     assert res["interval_days_since_last"] == [0]
+
+
+def test_noperiods():
+    values = [ True if it == 'T' else False for it in "FFFFFFFFFFFFFF"]
+    ordinals = [it for it in range(len(values))]
+
+    res = compute_periods_with_margins(ordinals, values, cooloff=2, initial_margin=2)
+    assert res["days"] == 0
+    assert res["periods"] == 0
+    assert res["max_consec_days"] == 0
+    assert res["interval_starts"] == []
+    assert res["interval_ends"] == []
+    assert res["interval_days"] == []
+    assert res["interval_days_since_last"] == []
