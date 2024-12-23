@@ -1,8 +1,6 @@
 from .fill_gaps import fill_gaps
-from .compute_periods import compute_periods
-from .compute_periods_with_margins import compute_periods_with_margins
+from .compute_periods import compute_periods, delete_period, join_periods, join_periods_by_distance
 from .dates import dates_to_ordinal, dates_to_ordinal_with_values, unify_dates, dates_fill_period
-from .compute_periods_simple import compute_periods_simple, df_w_intervals_compute_periods_simple
 from .get_closest_event import get_closest_event
 
 def find_interval_by_date(df, _dt, pid=None, strict=True):

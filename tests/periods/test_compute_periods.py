@@ -1,115 +1,66 @@
 from libds.periods import compute_periods
 
 
-def test_compute_periods():
-    ordinals = [0, 1, 2, 3, 4]
-    values = [False, True, False, True, True]
+def makebool(s):
+    return [ True if x == 'T' else False for x in s ]
 
-    res = compute_periods(ordinals, values)
-
-    assert res["days"] == 3
-    assert res["periods"] == 2
-    assert res["max_consec_days"] == 2
+def test_is_callable():
+    res = compute_periods(makebool('FTTF'))
 
 
-def test_compute_periods_prefix():
-    ordinals = [0, 1, 2, 3, 4]
-    values = [False, True, False, True, True]
-
-    res = compute_periods(ordinals, values, prefix="potato")
-
-    assert res["potato_days"] == 3
-    assert res["potato_periods"] == 2
-    assert res["potato_max_consec_days"] == 2
+def test_small_period():
+    res = compute_periods(makebool('FTTF'))
+    
+    assert res['days'] == 2
+    assert res['periods'] == 1
 
 
-def test_compute_periods_w_gaps():
-    # If there are gaps, they are filled with True only between Trues.
-    ordinals = [0,     1,     2,     7,     9,  13,   15,    16]
-    values = [False, True, False, False, True, True, False, True]
-    # True: 1,9,10,11,12,13,16
+def test_two_periods():
+    res = compute_periods(makebool('FTTFTTTF'))
 
-    res = compute_periods(ordinals, values)
-
-    assert res["days"] == 7
-    assert res["periods"] == 3
-    assert res["max_consec_days"] == 5
+    assert res['days'] == 5
+    assert res['periods'] == 2
 
 
-def test_compute_periods_extra():
-    ordinals = [0, 1, 2, 3, 4, 5, 6, 7]
-    values = [False, True, False, True, True, False, False, True]
+def test_begins_and_ends():
+    res = compute_periods(makebool('TFFTTF'))
+    assert res['days'] == 3
+    assert res['periods'] == 2
 
-    res = compute_periods(ordinals, values, extra_stats=True)
+    res = compute_periods(makebool('FFTFTT'))
+    assert res['days'] == 3
+    assert res['periods'] == 2
 
-    assert res["days"] == 4
-    assert res["periods"] == 3
-    assert res["max_consec_days"] == 2
-    assert res["interval_days_since_last"] == [1, 1, 2]
-    assert res["interval_starts"] == [1, 3, 7]
-    assert res["interval_ends"] == [1, 4, 7]
-
-
-def test_days_since_last():
-    # Simple
-    ordinals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    values = [True, False, False, False, True, True, True, True, False, True]
-    res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
-    assert res["periods"] == 3
-    assert res['days'] == 6
-    assert res["max_consec_days"] == 4
-    assert res["interval_days_since_last"] ==  [0, 3, 1]
-
-   
-    # Gaps on true
-    ordinals = [0, 1, 2, 3, 4, 7, 8, 9]
-    values = [True, False, False, False, True, True, False, True]
-    res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
-    assert res["periods"] == 3
-    assert res['days'] == 6
-    assert res["max_consec_days"] == 4
-    assert res["interval_days_since_last"] ==  [0, 3, 1]
-
-    # Gaps on False
-    ordinals = [0, 1, 3, 4, 7, 8, 9]
-    values = [True, False, False, True, True, False, True]
-    res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
-    assert res["periods"] == 3
-    assert res['days'] == 6
-    assert res["max_consec_days"] == 4
-    assert res["interval_days_since_last"] ==  [0, 3, 1]
+    res = compute_periods(makebool('TFFTTFT'))
+    assert res['days'] == 4
+    assert res['periods'] == 3
 
 
-def test_interval_days():
-    # Simple
-    ordinals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    values = [True, False, False, False, True, True, True, True, False, True]
-    res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
-    assert res["interval_days"] ==  [1, 4, 1]
+def test_intervals():
+    res = compute_periods(makebool('TFFTTF'))
+    assert res['intervals'] == [0, 2]
 
-   
-    # Gaps on true
-    ordinals = [0, 1, 2, 3, 4, 7, 8, 9]
-    values = [True, False, False, False, True, True, False, True]
-    res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
-    assert res["interval_days"] ==  [1,4,1]
-
-    # Gaps on False
-    ordinals = [0, 1, 3, 4, 7, 8, 9]
-    values = [True, False, False, True, True, False, True]
-    res = compute_periods(ordinals, values, mode='true_between', extra_stats=True)
-    assert res["interval_days"] ==  [1, 4, 1]
+    res = compute_periods(makebool('FTFFTTFFFT'))
+    assert res['intervals'] == [1, 2, 3]
 
 
-def test_no_periods():
-    ordinals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    values = [False, False, False, False, False, False, False, False, False, False]
+def test_durations():
+    res = compute_periods(makebool('FTFFTTFFFTTT'))
+    assert res['durations'] == [1, 2, 3]
 
-    res = compute_periods(ordinals, values, extra_stats=True)
-    assert res["days"] == 0
-    assert res["periods"] == 0
-    assert res["max_consec_days"] == 0
-    assert res['interval_starts'] == []
-    assert res['interval_ends'] == []
-    assert res['interval_days'] == []
-    assert res['interval_days_since_last'] == []
+    res = compute_periods(makebool('FTFFTTFFFTF'))
+    assert res['durations'] == [1, 2, 1]
+
+    res = compute_periods(makebool('TTTFFTTFFFTTT'))
+    assert res['durations'] == [3, 2, 3]
+
+
+def test_starts_and_ends():
+    res = compute_periods(makebool('TFFTTF'))
+    assert res['starts'] == [0, 3]
+    assert res['ends'] == [0, 4]
+
+    res = compute_periods(makebool('FTFFTT'))
+    assert res['starts'] == [1, 4]
+    assert res['ends'] == [1, 5]
+    
