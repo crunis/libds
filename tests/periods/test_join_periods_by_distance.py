@@ -1,4 +1,4 @@
-from libds.periods import compute_periods, join_periods_by_distance
+from libds.periods import compute_periods, join_periods_by_distance, delete_period
 
 def makebool(s):
     return [ True if x == 'T' else False for x in s ]
@@ -34,3 +34,15 @@ def test_several_join_case():
     assert res['starts'] == [1]
     assert res['ends'] == [12]
 
+
+def test_antonio_scenario():
+    periods = compute_periods(makebool('FFTTFTFFTTFFFFFFFTTTFFTTFFFFFFTTT'))
+    assert periods['periods'] == 6
+
+    res = join_periods_by_distance(periods, 5)
+    assert res['periods'] == 3
+
+    if res['intervals'][0] < 3:
+        res = delete_period(res, 0)
+
+    assert res['periods'] == 2

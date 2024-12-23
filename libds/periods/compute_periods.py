@@ -56,7 +56,6 @@ def compute_periods(states):
 
 def join_periods(periods, n):
     if (n<0) or (n>len(periods['intervals'])-2):
-        print(periods, n)
         raise IndexError('period index out of range')
     
     periods = deepcopy(periods)
@@ -92,9 +91,7 @@ def delete_period(periods, n):
 
 def join_periods_by_distance(periods, distance):
     for i in range(len(periods['intervals'])-1, 0, -1):
-        print(i)
         if periods['intervals'][i] <= distance:
-            print('joining')
             periods = join_periods(periods, i-1)
 
     return periods
