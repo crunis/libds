@@ -102,3 +102,17 @@ def test_add_cooloff_days():
     assert res["interval_ends"] == [3, 8]
     assert res["interval_days"] == [4, 3]
     assert res["interval_days_since_last"] == [0, 2]
+
+
+    # Periods with cooloff added to the period
+    values = [ True if it == 'T' else False for it in "TTFTFFFFF"]
+    ordinals = [it for it in range(len(values))]
+
+    res = compute_periods_with_margins(ordinals, values, cooloff=2, add_cooloff=True)
+    assert res["days"] == 3
+    assert res["periods"] == 1
+    assert res["max_consec_days"] == 1
+    assert res["interval_starts"] == [3]
+    assert res["interval_ends"] == [8]
+    assert res["interval_days"] == [6]
+    assert res["interval_days_since_last"] == [1]
