@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-def compute_periods(states):
+def compute_periods(states, prefix=""):
     # State
     prev_state = False
     interval = 0
@@ -44,14 +44,14 @@ def compute_periods(states):
         ends.append(i)
 
 
-    return dict(
-        days=days,
-        periods=periods,
-        intervals=intervals,
-        durations=durations,
-        starts=starts,
-        ends=ends,
-    )
+    return {
+        prefix + 'days': days,
+        prefix + 'periods': periods,
+        prefix + 'intervals': intervals,
+        prefix + 'durations': durations,
+        prefix + 'starts': starts,
+        prefix + 'ends': ends,
+    }
 
 
 def join_periods(periods, n):

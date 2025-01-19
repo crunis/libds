@@ -63,4 +63,12 @@ def test_starts_and_ends():
     res = compute_periods(makebool('FTFFTT'))
     assert res['starts'] == [1, 4]
     assert res['ends'] == [1, 5]
-    
+
+
+def test_prefix():
+    res = compute_periods(makebool('TFFTTF'))
+    assert list(res.keys()) == ['days', 'periods', 'intervals', 'durations', 'starts', 'ends']
+
+    res = compute_periods(makebool('TFFTTF'), prefix='fever_')
+    assert list(res.keys()) == ['fever_days', 'fever_periods', 'fever_intervals',
+                          'fever_durations', 'fever_starts', 'fever_ends']
