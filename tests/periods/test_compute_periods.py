@@ -81,3 +81,6 @@ def test_return_max_consec_days():
 
     res = compute_periods(makebool('TFFTTTFFTTFFFF'))
     assert res['max_consec_days'] == 3
+
+    res = compute_periods(makebool('FFFFFFFFF'))
+    assert res['max_consec_days'] == 0
