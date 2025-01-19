@@ -51,6 +51,7 @@ def compute_periods(states, prefix=""):
         prefix + 'durations': durations,
         prefix + 'starts': starts,
         prefix + 'ends': ends,
+        prefix + 'max_consec_days': max(durations),
     }
 
 
