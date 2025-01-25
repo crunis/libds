@@ -38,3 +38,12 @@ def test_fill_gaps_true_between():
     assert (o == [it for it in range(0,10)])
     assert (v == [False, True, False, False, False, True, True, True, True, False])
 
+
+def test_fill_gaps_true_between_threshold():
+    ordinals = [0,      1,    3,     4,    5,    9,    10]
+    values = [ False, True, True, False, True, True, False]
+
+    o, v = fill_gaps(ordinals, values, mode="true_between_threshold", threshold=2)
+
+    assert (o == [it for it in range(0, 11)])
+    assert (v == [False, True, True, True, False, True, False, False, False, True, False])
