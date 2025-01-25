@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-def compute_periods(states, prefix=""):
+def compute_periods(states, prefix="", interval_stats=True):
     # State
     prev_state = False
     interval = 0
@@ -43,16 +43,21 @@ def compute_periods(states, prefix=""):
         durations.append(duration)
         ends.append(i)
 
-
-    return {
+    result = {
         prefix + 'days': days,
         prefix + 'periods': periods,
-        prefix + 'intervals': intervals,
-        prefix + 'durations': durations,
-        prefix + 'starts': starts,
-        prefix + 'ends': ends,
         prefix + 'max_consec_days': max(durations) if durations else 0,
     }
+
+    if interval_stats:
+        result |= {
+            prefix + 'intervals': intervals,
+            prefix + 'durations': durations,
+            prefix + 'starts': starts,
+            prefix + 'ends': ends,
+        }
+
+    return result
 
 
 def join_periods(periods, n):

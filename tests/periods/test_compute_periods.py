@@ -67,12 +67,17 @@ def test_starts_and_ends():
 
 def test_prefix():
     res = compute_periods(makebool('TFFTTF'))
-    assert list(res.keys()) == ['days', 'periods', 'intervals', 'durations', 'starts', 'ends', 'max_consec_days']
+    assert set(res.keys()) == {'days', 'periods', 'intervals', 'durations', 'starts', 'ends', 'max_consec_days'}
 
     res = compute_periods(makebool('TFFTTF'), prefix='fever_')
-    assert list(res.keys()) == ['fever_days', 'fever_periods', 'fever_intervals',
+    assert set(res.keys()) == {'fever_days', 'fever_periods', 'fever_intervals',
                           'fever_durations', 'fever_starts', 'fever_ends',
-                          'fever_max_consec_days']
+                          'fever_max_consec_days'}
+    
+
+def test_interval_stats_param():
+    res = compute_periods(makebool('TFFTTF'), interval_stats=False)
+    assert set(res.keys()) == {'days', 'periods', 'max_consec_days'}
     
 
 def test_return_max_consec_days():
