@@ -18,13 +18,15 @@ def dates_to_ordinal_with_values(datetimes, values, drop_duplicates=True):
     seen = set()
     uniq_ordinals = []
     uniq_values = []
-    if drop_duplicates:
-        for i in range(len(ordinals)):
-            if ordinals[i] not in seen:
-                seen.add(ordinals[i])
-                uniq_ordinals.append(ordinals[i])
-                if values:
-                    uniq_values.append(values[i])
+
+    for i in range(len(ordinals)):
+        if drop_duplicates and ordinals[i] in seen:
+            continue
+
+        seen.add(ordinals[i])
+        uniq_ordinals.append(ordinals[i])
+        if len(values) > i:
+            uniq_values.append(values[i])
 
     return uniq_ordinals, uniq_values
 
