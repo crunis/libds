@@ -11,6 +11,7 @@ def test_get_admission():
     assert res["start_date"] == "2021-03-29"
     assert res["_id"] == 1
 
+
 def test_get_admission_id():
     res = get_admission_id(b_admission, 13, pd.Timestamp("2021-03-30"))
     assert res == 1
