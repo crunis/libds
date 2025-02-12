@@ -13,6 +13,11 @@ def add_exitus_info(exitus_dt, ref_dt):
         ))
     return pd.Series()
 
+
 def add_age(birth_dt, ref_dt):
     """Compute age in years from birth date to reference date"""
+    if birth_dt is None:
+        print("Warning, None passed as birth_date!")
+        return pd.Series()
+
     return pd.Series({'age': int((ref_dt - birth_dt).days/365.2425) })
