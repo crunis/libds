@@ -16,7 +16,7 @@ def add_exitus_info(exitus_dt, ref_dt):
 
 def add_age(birth_dt, ref_dt):
     """Compute age in years from birth date to reference date"""
-    if birth_dt is None:
+    if (birth_dt is None) or (pd.isna(birth_dt)):
         print("Warning, None passed as birth_date!")
         return pd.Series()
 

@@ -10,3 +10,6 @@ def test_add_age():
 def test_empty_age():
     res = add_age(None, pd.Timestamp("2025-02-11"))
     assert res.empty
+
+    res = add_age(float('Nan'), pd.Timestamp("2025-02-11"))
+    assert res.empty
