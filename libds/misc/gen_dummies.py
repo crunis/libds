@@ -125,12 +125,6 @@ def gen_dummies_from_combined_columns(
     if df_subset.empty:
          return pd.DataFrame(index=df.index)
 
-    # --- Handle NaNs according to process_na ---
-    all_nan_rows_mask = None
-    if process_na:
-        # Identify rows where ALL specified columns are NaN *before* stacking
-        all_nan_rows_mask = df_subset.isnull().all(axis=1)
-
     # --- Stack, Dummify, Aggregate ---
     # Stack the data: creates a Series with MultiIndex (original_index, column_name)
     # stack() automatically drops NaNs, which is usually desired here.
@@ -142,8 +136,6 @@ def gen_dummies_from_combined_columns(
         # If process_na=True, NaNs will be filled later. Otherwise, it's all zeros.
         dummy_df = pd.DataFrame(index=df.index)
     else:
-        # Generate dummies from the stacked non-NaN data.
-        # dummy_na=False because NaNs were handled by stacking.
         dummies_stacked = pd.get_dummies(
             stacked_data,
             prefix=prefix,
@@ -156,32 +148,16 @@ def gen_dummies_from_combined_columns(
         # .max() ensures a 1 if the category appeared in *any* column for that row.
         dummy_df = dummies_stacked.groupby(level=0).max()
 
-    # Reindex to ensure all original rows are present.
-    # Rows that only had NaNs (or were empty) in the subset will be filled with 0.
-    # This step also ensures the output has the same index as the input df.
-    dummy_df = dummy_df.reindex(df.index, fill_value=0)
-
-    # --- Apply Type Conversion and NaN Processing ---
-    # Convert to float if required (do this *before* potentially inserting NaNs)
     if convert_to_float:
-        # Check if already float to avoid unnecessary conversion
         if not pd.api.types.is_float_dtype(dummy_df.dtypes):
              dummy_df = dummy_df.astype(float)
-    # else: # Optional: If not converting to float, ensure integer type if possible
-    #    if pd.api.types.is_numeric_dtype(dummy_df.dtypes) and not pd.api.types.is_float_dtype(dummy_df.dtypes):
-    #         dummy_df = dummy_df.astype(int) # Or bool? pd.get_dummies often returns uint8
 
-    # Apply the specific NaN processing using the pre-calculated mask
-    if process_na and all_nan_rows_mask is not None:
-         # Ensure dtype is float before assigning NaN (required by process_na check)
-         if not pd.api.types.is_float_dtype(dummy_df.dtypes):
-              # This should technically not be reachable due to the initial check,
-              # but adding robustness.
-              dummy_df = dummy_df.astype(float)
-
-         # Set rows where *all* original inputs were NaN to NaN across all dummies
-         # Use .loc for reliable assignment
-         dummy_df.loc[all_nan_rows_mask, :] = np.nan
+    # Reindex to ensure all original rows are present.
+    # Rows that only had NaNs (or were empty) in the subset will be filled
+    #   with 0 or pd.NA depending on process_na
+    # This step also ensures the output has the same index as the input df.
+    fill_value = pd.NA if process_na else 0
+    dummy_df = dummy_df.reindex(df.index, fill_value=fill_value)
 
     return dummy_df
 
