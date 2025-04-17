@@ -22,7 +22,8 @@ def gen_dummies(
         prefix: String prefix for the new dummy column names.
         process_na: If True, handle NaNs by setting all dummy columns for NaN
                     rows to NaN. Requires convert_to_float=True.
-        convert_to_float: If True, convert dummy columns to float dtype.
+        convert_to_float: If True, convert dummy columns to float dtype. This
+                    usually means that from True/False goes to 1/0
 
     Returns:
         A pandas DataFrame containing the dummy variables for the single feature.
@@ -35,8 +36,6 @@ def gen_dummies(
         raise ValueError("process_na=True requires convert_to_float=True")
 
     if isinstance(feature_data, pd.DataFrame):
-        if feature_data.shape[1] == 0:
-             return pd.DataFrame(index=feature_data.index) # Handle empty DataFrame input
         if feature_data.shape[1] != 1:
             raise ValueError("Input 'feature_data' must be a pandas Series or a single-column DataFrame.")
         # If single-column DF, extract the Series for get_dummies
@@ -124,7 +123,6 @@ def gen_dummies_from_combined_columns(
         raise KeyError(f"One or more columns in {columns_to_combine} not found in DataFrame.") from e
 
     if df_subset.empty:
-         # Input DataFrame might be empty, or selected columns resulted in empty
          return pd.DataFrame(index=df.index)
 
     # --- Handle NaNs according to process_na ---
