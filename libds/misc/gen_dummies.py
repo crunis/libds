@@ -8,6 +8,7 @@ import warnings
 def gen_dummies(
     feature_data: Union[pd.DataFrame, pd.Series],
     prefix: str,
+    prefix_sep: str = '_',
     process_na: bool = True,
     convert_to_float: bool = True
 ) -> pd.DataFrame:
@@ -20,6 +21,7 @@ def gen_dummies(
     Args:
         feature_data: Input pandas Series or single-column DataFrame.
         prefix: String prefix for the new dummy column names.
+        prefix_sep: Separator used between prefix and value in dummy column names.
         process_na: If True, handle NaNs by setting all dummy columns for NaN
                     rows to NaN. Requires convert_to_float=True.
         convert_to_float: If True, convert dummy columns to float dtype. This
@@ -49,7 +51,7 @@ def gen_dummies(
         return pd.DataFrame(index=feature_series.index) # Handle empty Series input
 
     # Use standard get_dummies, simpler now
-    dummy_df = pd.get_dummies(feature_series, prefix=prefix, dummy_na=process_na, prefix_sep='_')
+    dummy_df = pd.get_dummies(feature_series, prefix=prefix, dummy_na=process_na, prefix_sep=prefix_sep)
 
     if convert_to_float:
          dummy_df = dummy_df.astype(float)
