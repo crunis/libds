@@ -2,7 +2,7 @@ import math
 import pandas as pd, numpy as np
 
 
-TRUES  = set(['true', 'si', 'yes', 1, '1'])
+TRUES  = set(['true', 'si', 'sí', 'yes', 1, '1'])
 FALSES = set(['false', 'no', 0, '0'])
 TFS = TRUES | FALSES | set([None, np.nan, pd.NA])
 
