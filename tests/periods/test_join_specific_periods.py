@@ -1,4 +1,4 @@
-from libds.periods import join_periods
+from libds.periods import join_specific_periods
 from copy import deepcopy
 
 
@@ -23,12 +23,12 @@ p0 = dict(
 
 def test_doesnt_modify_param():
     p1c = deepcopy(p1)
-    join_periods(p1c, 0)
+    join_specific_periods(p1c, 0)
     assert p1 == p1c
 
 
 def test_simple_join():
-    res = join_periods(p1, 0)
+    res = join_specific_periods(p1, 0)
 
     assert res['periods'] == 1
     assert res['intervals'] == [0]
@@ -41,17 +41,17 @@ def test_simple_join():
 
 def test_out_of_bounds():
     try:
-        res = join_periods(p1, 1)
+        res = join_specific_periods(p1, 1)
     except IndexError as e:
         assert str(e) == 'period index out of range'
 
     try:
-        res = join_periods(p1, -1)
+        res = join_specific_periods(p1, -1)
     except IndexError as e:
         assert str(e) == 'period index out of range'
 
     try:
-        res = join_periods(p0, 0)
+        res = join_specific_periods(p0, 0)
     except IndexError as e:
         assert str(e) == 'period index out of range'
 

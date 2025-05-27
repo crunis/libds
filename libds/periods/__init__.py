@@ -1,5 +1,5 @@
 from .fill_gaps import fill_gaps
-from .compute_periods import compute_periods, delete_period, join_periods, join_periods_by_distance
+from .compute_periods import compute_periods, delete_period, join_specific_periods, join_periods_by_distance
 from .dates import dates_to_ordinal, dates_to_ordinal_with_values, unify_dates, dates_fill_period
 from .get_closest_event import get_closest_event
 
