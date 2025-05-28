@@ -69,11 +69,19 @@ def join_periods(
     return joined_periods, correspondences, dict(stats)
 
 
-def df_join_periods(df: pd.DataFrame, start_field='start_date', end_field='end_date'):
+def df_join_periods(
+        df: pd.DataFrame, 
+        start_field='start_date', 
+        end_field='end_date',
+        join_condition = default_join_periods_join_condition
+        ):
     dfs = list()
     for pid, data in df.groupby('pid'):
         data = data.sort_values(start_field)
-        res = join_periods(zip(data[start_field].tolist(), data[end_field].tolist()))
+        res = join_periods(
+            zip(data[start_field].tolist(), data[end_field].tolist()),
+            join_condition=join_condition
+            )
         dfres = pd.DataFrame(res[0], columns=[start_field, end_field])
         dfres.insert(0, 'pid', pid)
         dfs.append(dfres)
