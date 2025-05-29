@@ -95,7 +95,7 @@ def join_periods(
     return joined_periods, correspondences, first_episode_indices, last_episode_indices, dict(stats)
 
 
-def df_join_periods_with_detailed_mapping(
+def df_join_periods(
         df: pd.DataFrame,
         start_field='start_dt',
         end_field='end_dt',
@@ -114,7 +114,7 @@ def df_join_periods_with_detailed_mapping(
                    and their roles (first, last, constituent, subset, etc.)
     """
 
-    def process_patient_with_detailed_mapping(pid, patient_df):
+    def process_patient(pid, patient_df):
         df_sorted = patient_df.sort_values(start_field).reset_index()
 
         # Get enhanced joining results
@@ -195,12 +195,12 @@ def df_join_periods_with_detailed_mapping(
 
     if n_jobs is None:
         results = [
-            process_patient_with_detailed_mapping(pid, data)
+            process_patient(pid, data)
             for pid, data in df.groupby('pid')
         ]
     else:
         results = Parallel(n_jobs=n_jobs)(
-            delayed(process_patient_with_detailed_mapping)(pid, data)
+            delayed(process_patient)(pid, data)
             for pid, data in df.groupby('pid')
         )
 
