@@ -10,6 +10,8 @@ def test_join_periods_simple():
     assert join_periods(periods) == (
         [['2023-01-01', '2023-01-03']],
         [[0, 1]],
+        [0],
+        [1],
         {}
     )
 
@@ -20,6 +22,8 @@ def test_join_periods_simple():
     assert join_periods(periods2) == (
         [['2023-01-01', '2023-01-04']],
         [[0, 1, 2]],
+        [0],
+        [2],
         {}
     )
 
@@ -36,6 +40,8 @@ def test_join_periods_simple():
             [0, 1],
             [2]
         ],
+        [0, 2],
+        [1, 2],
         {}
     )
 
@@ -48,7 +54,7 @@ def test_join_periods_custom_function():
     periods = [ [d1, d2], [d3, d4] ]
 
     assert join_periods(periods, join_condition=join_up_to_a_day) == (
-        [[d1, d4]], [[0, 1]], {}
+        [[d1, d4]], [[0, 1]], [0], [1],{}
     )
 
     d1 = pd.to_datetime('2023-01-01 13:00:00')
@@ -58,7 +64,7 @@ def test_join_periods_custom_function():
     periods = [ [d1, d2], [d3, d4] ]
 
     assert join_periods(periods, join_condition=join_up_to_a_day) == (
-        [[d1, d2], [d3,d4]], [[0], [1]], {}
+        [[d1, d2], [d3,d4]], [[0], [1]], [0, 1], [0, 1], {}
     )
 
 
@@ -73,7 +79,7 @@ def test_join_overlap():
     
     assert res[0] == [[d1, d4]]
     assert res[1] == [[0, 1]]
-    assert res[2] == {'overlap': 1}
+    assert res[4] == {'overlap': 1}
 
 
 def test_join_subset():
@@ -88,4 +94,4 @@ def test_join_subset():
     
     assert res[0] == [[d1, d2]]
     assert res[1] == [[0, 1]]
-    assert res[2] == {'subset': 1}
+    assert res[4] == {'subset': 1}
