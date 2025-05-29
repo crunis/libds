@@ -1,4 +1,4 @@
-from libds.periods import df_join_periods
+from libds.periods import df_join_periods_with_detailed_mapping, join_up_to_a_day
 import pandas as pd
 
 
@@ -18,21 +18,28 @@ def test_simple():
         {'pid': 2, '_id': 5, 'eid': 14, 'start_dt': d5, 'end_dt': d6},
     ])
 
-    res = df_join_periods(df)
+    res, _ = df_join_periods_with_detailed_mapping(df)
 
     assert list(res.columns) == [
-        'pid', 
         'admission_id',
+        'pid',
+        'admission_n',
         'start_dt',
         'end_dt',
         'num_episodes',
-        'first_episode_id',
-        'last_episode_id',
-        'all_episode_ids',
-        'first_episode_idx',
-        'last_episode_idx',
-        'all_episode_indices',
     ]
     assert list(res.pid) == [1, 1, 2, 2]
     assert list(res.start_dt) == [d1, d5, d1, d5]
     assert list(res.end_dt) == [d4, d6, d2, d6]
+
+
+def test_fixtures():
+    df_episodes = pd.read_parquet('tests/fixtures/df_episodes.parquet')
+    df_admissions = pd.read_parquet('tests/fixtures/df_admissions.parquet')
+    df_mappings = pd.read_parquet('tests/fixtures/df_mappings.parquet')
+
+    res_admissions, res_mappings = df_join_periods_with_detailed_mapping(
+        df_episodes,
+        join_condition=join_up_to_a_day)
+    assert len(df_admissions.compare(res_admissions)) == 0
+    assert len(df_mappings.compare(res_mappings)) == 0
