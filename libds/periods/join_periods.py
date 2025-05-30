@@ -101,6 +101,50 @@ def join_periods(
     return joined_periods, metadata, dict(stats)
 
 
+def create_mapping_row(episode, episode_idx, pid, admission_id, first_idx, last_idx, 
+                      episode_indices, start_field, end_field):
+    """
+    Create a mapping row for a single episode within an admission.
+    
+    Args:
+        episode: The episode data (pandas Series)
+        episode_idx: The index of this episode in the sorted patient data
+        pid: Patient ID
+        admission_id: The admission number (1-indexed)
+        first_idx: Index of the first episode in this admission
+        last_idx: Index of the last episode in this admission
+        episode_indices: List of all episode indices in this admission
+        start_field: Name of the start datetime field
+        end_field: Name of the end datetime field
+    
+    Returns:
+        dict: Mapping row data
+    """
+    # Determine episode role
+    roles = []
+    if episode_idx == first_idx:
+        roles.append('first')
+    if episode_idx == last_idx:
+        roles.append('last')
+    if episode_idx in episode_indices:
+        roles.append('constituent')
+    
+    mapping_row = {
+        'pid': pid,
+        'admission_n': admission_id,
+        'episode_idx': episode_idx,
+        'original_index': episode['index'],
+        'eid': episode.get('eid', episode_idx),
+        'roles': '|'.join(roles),
+        'is_first': episode_idx == first_idx,
+        'is_last': episode_idx == last_idx,
+        'episode_start': episode[start_field],
+        'episode_end': episode[end_field]
+    }
+    
+    return mapping_row
+
+
 def df_join_periods(
         df: pd.DataFrame,
         start_field='start_dt',
@@ -151,8 +195,6 @@ def df_join_periods(
                 start_field: period[0],
                 end_field: period[1],
                 'num_episodes': len(episode_indices),
-#                 'first_episode_idx': first_idx,
-#                 'last_episode_idx': last_idx
             }
 
             # Add custom fields
@@ -171,32 +213,20 @@ def df_join_periods(
 
             admission_rows.append(admission_row)
 
-            # Detailed mapping rows
+            # Create mapping rows using the extracted function
             for episode_idx in episode_indices:
                 episode = df_sorted.iloc[episode_idx]
-
-                # Determine episode role
-                roles = []
-                if episode_idx == first_idx:
-                    roles.append('first')
-                if episode_idx == last_idx:
-                    roles.append('last')
-                if episode_idx in episode_indices:
-                    roles.append('constituent')
-
-                mapping_row = {
-                    'pid': pid,
-                    'admission_n': admission_id + 1,
-                    'episode_idx': episode_idx,
-                    'original_index': episode['index'],
-                    'eid': episode.get('eid', episode_idx),
-#                     '_id': episode.get('_id', episode_idx),
-                    'roles': '|'.join(roles),
-                    'is_first': episode_idx == first_idx,
-                    'is_last': episode_idx == last_idx,
-                    'episode_start': episode[start_field],
-                    'episode_end': episode[end_field]
-                }
+                mapping_row = create_mapping_row(
+                    episode=episode,
+                    episode_idx=episode_idx,
+                    pid=pid,
+                    admission_id=admission_id + 1,
+                    first_idx=first_idx,
+                    last_idx=last_idx,
+                    episode_indices=episode_indices,
+                    start_field=start_field,
+                    end_field=end_field
+                )
                 mapping_rows.append(mapping_row)
 
         return pd.DataFrame(admission_rows), pd.DataFrame(mapping_rows)
