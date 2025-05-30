@@ -25,9 +25,9 @@ def join_periods(
 
     Returns:
         joined_periods: list of [start, end] periods
-        correspondences: list of all episode indices in each admission
-        first_episode_indices: list of indices of chronologically first episodes
-        last_episode_indices: list of indices of episodes that determine end boundary
+        metadata: dictionary containing:
+            - 'correspondences': list of all episode indices in each admission
+            - 'edge_episode_idx': list of (first_idx, last_idx) pairs for each joined period
         stats: dictionary with joining statistics
     """
     current_period = None
@@ -92,7 +92,13 @@ def join_periods(
     first_episode_indices.append(current_first_idx)
     last_episode_indices.append(current_last_idx)
 
-    return joined_periods, correspondences, first_episode_indices, last_episode_indices, dict(stats)
+    # Package metadata into a dictionary
+    metadata = {
+        'correspondences': correspondences,
+        'edge_episode_idx': list(zip(first_episode_indices, last_episode_indices))
+    }
+
+    return joined_periods, metadata, dict(stats)
 
 
 def df_join_periods(
@@ -118,19 +124,21 @@ def df_join_periods(
         df_sorted = patient_df.sort_values(start_field).reset_index()
 
         # Get enhanced joining results
-        res = join_periods(
+        joined_periods, metadata, stats = join_periods(
                 zip(df_sorted[start_field].tolist(), df_sorted[end_field].tolist()),
                 join_condition=join_condition
                 )
 
-        joined_periods, correspondences, first_episode_indices, last_episode_indices, stats = res
+        # Unpack metadata
+        correspondences = metadata['correspondences']
+        edge_episode_idx = metadata['edge_episode_idx']
 
         # Create admissions dataframe
         admission_rows = []
         mapping_rows = []
 
-        for admission_id, (period, episode_indices, first_idx, last_idx) in enumerate(
-            zip(joined_periods, correspondences, first_episode_indices, last_episode_indices)
+        for admission_id, (period, episode_indices, (first_idx, last_idx)) in enumerate(
+            zip(joined_periods, correspondences, edge_episode_idx)
         ):
             constituent_episodes = df_sorted.iloc[episode_indices]
             first_episode = df_sorted.iloc[first_idx]
