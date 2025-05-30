@@ -26,16 +26,16 @@ def join_periods(
     Returns:
         joined_periods: list of [start, end] periods
         metadata: dictionary containing:
-            - 'correspondences': list of all episode indices in each admission
+            - 'episode_idxs': list of all episode indices in each admission
             - 'edge_episode_idx': list of (first_idx, last_idx) pairs for each joined period
         stats: dictionary with joining statistics
     """
     current_period = None
     joined_periods = list()
-    correspondences = list()
+    episode_idxs = list()
     first_episode_indices = list()
     last_episode_indices = list()
-    current_correspondence = list()
+    current_episode_idxs = list()
     current_first_idx = None
     current_last_idx = None
     stats = defaultdict(int)
@@ -47,54 +47,54 @@ def join_periods(
         # First period
         if current_period is None:
             current_period = period
-            current_correspondence.append(n)
+            current_episode_idxs.append(n)
             current_first_idx = n
             current_last_idx = n
             continue
 
         if period[0] < current_period[1]:
             if period[1] <= current_period[1]:
-                # subset, ignore for boundary but keep in correspondence
+                # SUBSET, ignore for boundary but keep in episode_idxs
                 stats["subset"] += 1
-                current_correspondence.append(n)
+                current_episode_idxs.append(n)
                 # Don't update current_last_idx since this episode doesn't extend the boundary
                 continue
             else:
-                # overlap - this episode extends the end boundary
+                # OVERLAP - this episode extends the end boundary
                 stats["overlap"] += 1
                 current_period[1] = period[1]
-                current_correspondence.append(n)
+                current_episode_idxs.append(n)
                 current_last_idx = n  # This episode now determines the end
                 continue
 
         # Join periods
         if join_condition(current_period, period):
             current_period[1] = period[1]
-            current_correspondence.append(n)
+            current_episode_idxs.append(n)
             current_last_idx = n  # This episode determines the new end
             continue
 
         # New period - save current and start new
         joined_periods.append(current_period)
-        correspondences.append(current_correspondence)
+        episode_idxs.append(current_episode_idxs)
         first_episode_indices.append(current_first_idx)
         last_episode_indices.append(current_last_idx)
 
         # Start new admission
         current_period = period
-        current_correspondence = [n]
+        current_episode_idxs = [n]
         current_first_idx = n
         current_last_idx = n
 
     # Don't forget the last admission
     joined_periods.append(current_period)
-    correspondences.append(current_correspondence)
+    episode_idxs.append(current_episode_idxs)
     first_episode_indices.append(current_first_idx)
     last_episode_indices.append(current_last_idx)
 
     # Package metadata into a dictionary
     metadata = {
-        'correspondences': correspondences,
+        'episode_idxs': episode_idxs,
         'edge_episode_idx': list(zip(first_episode_indices, last_episode_indices))
     }
 
@@ -130,7 +130,7 @@ def df_join_periods(
                 )
 
         # Unpack metadata
-        correspondences = metadata['correspondences']
+        episode_idxs = metadata['episode_idxs']
         edge_episode_idx = metadata['edge_episode_idx']
 
         # Create admissions dataframe
@@ -138,7 +138,7 @@ def df_join_periods(
         mapping_rows = []
 
         for admission_id, (period, episode_indices, (first_idx, last_idx)) in enumerate(
-            zip(joined_periods, correspondences, edge_episode_idx)
+            zip(joined_periods, episode_idxs, edge_episode_idx)
         ):
             constituent_episodes = df_sorted.iloc[episode_indices]
             first_episode = df_sorted.iloc[first_idx]
