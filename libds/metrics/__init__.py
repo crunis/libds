@@ -1,5 +1,4 @@
 from sklearn.metrics import confusion_matrix
-from pycaret.classification import remove_metric, add_metric
 
 
 def get_items(y, y_pred):
@@ -83,14 +82,3 @@ METRICS = [
     ('npv', npv),
     ('ppv', ppv)
 ]
-
-
-def force_add_metric(metric_name, metric_func, verbose=False):
-    try:
-        remove_metric(metric_name)
-    except:
-        if verbose:
-            print(f"couldnt remove {metric_name}")
-    if verbose:
-        print(f"Adding metric {metric_name}...")
-    add_metric(metric_name, metric_name, metric_func, target = 'pred')
