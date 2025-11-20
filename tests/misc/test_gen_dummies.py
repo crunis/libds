@@ -4,7 +4,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-from libds.misc.gen_dummies import gen_dummies, gen_dummies_from_combined_columns, get_multilabel_dummies_robust
+from libds.misc.gen_dummies import get_multilabel_dummies_robust
 
 # === Fixtures ===
 @pytest.fixture
@@ -34,7 +34,7 @@ class TestGenDummies:
 
     def test_basic_series_input_defaults(self, sample_series):
         """Test basic Series input with default options (process_na=True, float=True)."""
-        result = gen_dummies(sample_series, prefix='f1')
+        result = get_multilabel_dummies_robust(sample_series, prefix='f1')
         expected = pd.DataFrame({
             'f1_A': [True, False, True, pd.NA, False, False],
             'f1_B': [False, True, False, pd.NA, False, True],
@@ -44,7 +44,7 @@ class TestGenDummies:
 
     def test_basic_series_input_float(self, sample_series):
         """Test basic Series input with default options (process_na=True, float=True)."""
-        result = gen_dummies(sample_series, prefix='f1', convert_to_float=True)
+        result = get_multilabel_dummies_robust(sample_series, prefix='f1', convert_to_float=True)
         expected = pd.DataFrame({
             'f1_A': [1.0, 0.0, 1.0, np.nan, 0.0, 0.0],
             'f1_B': [0.0, 1.0, 0.0, np.nan, 0.0, 1.0],
@@ -54,7 +54,7 @@ class TestGenDummies:
 
     def test_basic_dataframe_input_defaults(self, sample_dataframe_single_col):
         """Test basic single-column DataFrame input with defaults."""
-        result = gen_dummies(sample_dataframe_single_col, prefix='f1', convert_to_float=True)
+        result = get_multilabel_dummies_robust(sample_dataframe_single_col, prefix='f1', convert_to_float=True)
         expected = pd.DataFrame({
             'f1_A': [1.0, 0.0, 1.0, np.nan, 0.0, 0.0],
             'f1_B': [0.0, 1.0, 0.0, np.nan, 0.0, 1.0],
@@ -65,7 +65,7 @@ class TestGenDummies:
 
     def test_process_na_false(self, sample_series):
         """Test with process_na=False and convert_to_float=False."""
-        result = gen_dummies(sample_series, prefix='f1', process_na=False, convert_to_float=False)
+        result = get_multilabel_dummies_robust(sample_series, prefix='f1', process_na=False, convert_to_float=False)
         # Expect integer type (often uint8 from get_dummies, but check result)
         expected = pd.DataFrame({
             'f1_A': [1, 0, 1, 0, 0, 0],
@@ -77,7 +77,7 @@ class TestGenDummies:
 
     def test_process_na_false_convert_true(self, sample_series):
         """Test with process_na=False and convert_to_float=True."""
-        result = gen_dummies(sample_series, prefix='f1', process_na=False, convert_to_float=True)
+        result = get_multilabel_dummies_robust(sample_series, prefix='f1', process_na=False, convert_to_float=True)
         expected = pd.DataFrame({
             'f1_A': [1.0, 0.0, 1.0, 0.0, 0.0, 0.0],
             'f1_B': [0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
@@ -89,7 +89,7 @@ class TestGenDummies:
     def test_convert_to_float_false_no_na(self):
         """Test convert_to_float=False with data having no NaNs."""
         series_no_nan = pd.Series(['A', 'B', 'A', 'B', 'C'], index=[1, 2, 3, 4, 5])
-        result = gen_dummies(series_no_nan, prefix='f1', process_na=False, convert_to_float=False)
+        result = get_multilabel_dummies_robust(series_no_nan, prefix='f1', process_na=False, convert_to_float=False)
         assert not pd.api.types.is_float_dtype(result.dtypes.iloc[0])
         # Check if it's integer or boolean type
         assert pd.api.types.is_integer_dtype(result.dtypes.iloc[0]) or pd.api.types.is_bool_dtype(result.dtypes.iloc[0])
@@ -101,20 +101,15 @@ class TestGenDummies:
         pd.testing.assert_frame_equal(result, expected)
 
 
-    def test_value_error_multi_column_dataframe(self, sample_dataframe_multi_col):
-        """Test ValueError is raised for multi-column DataFrame input."""
-        with pytest.raises(ValueError, match="Input 'feature_data' must be a pandas Series or a single-column DataFrame."):
-            gen_dummies(sample_dataframe_multi_col[['proc1', 'proc2']], prefix='f1') # Pass >1 column
-
     def test_type_error_invalid_input(self):
         """Test TypeError for non-Series/DataFrame input."""
-        with pytest.raises(TypeError, match="Input 'feature_data' must be a pandas Series or DataFrame."):
-            gen_dummies([1, 2, 3], prefix='f1') # Pass a list
+        with pytest.raises(TypeError, match="Input 'df' must be a pandas Series or DataFrame."):
+            get_multilabel_dummies_robust([1, 2, 3], prefix='f1') # Pass a list
 
     def test_empty_input_series(self):
         """Test with an empty Series."""
         s = pd.Series([], dtype=object, index=pd.Index([], name='empty_idx'))
-        result = gen_dummies(s, prefix='empty')
+        result = get_multilabel_dummies_robust(s, prefix='empty')
         assert result.empty
         assert result.index.equals(s.index)
         assert isinstance(result, pd.DataFrame)
@@ -122,7 +117,7 @@ class TestGenDummies:
     def test_empty_input_dataframe(self):
         """Test with an empty single-column DataFrame."""
         df = pd.DataFrame({'col': []}, index=pd.Index([], name='empty_idx'))
-        result = gen_dummies(df, prefix='empty')
+        result = get_multilabel_dummies_robust(df, prefix='empty')
         assert result.empty
         assert result.index.equals(df.index)
         assert isinstance(result, pd.DataFrame)
