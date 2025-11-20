@@ -4,7 +4,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-from libds.misc.gen_dummies import get_multilabel_dummies_robust
+from libds.misc.gen_dummies import ch_get_dummies
 
 # === Fixtures ===
 @pytest.fixture
@@ -34,7 +34,7 @@ class TestGenDummies:
 
     def test_basic_series_input_defaults(self, sample_series):
         """Test basic Series input with default options (process_na=True, float=True)."""
-        result = get_multilabel_dummies_robust(sample_series, prefix='f1')
+        result = ch_get_dummies(sample_series, prefix='f1')
         expected = pd.DataFrame({
             'f1_A': [True, False, True, pd.NA, False, False],
             'f1_B': [False, True, False, pd.NA, False, True],
@@ -44,7 +44,7 @@ class TestGenDummies:
 
     def test_basic_series_input_float(self, sample_series):
         """Test basic Series input with default options (process_na=True, float=True)."""
-        result = get_multilabel_dummies_robust(sample_series, prefix='f1', convert_to_float=True)
+        result = ch_get_dummies(sample_series, prefix='f1', convert_to_float=True)
         expected = pd.DataFrame({
             'f1_A': [1.0, 0.0, 1.0, np.nan, 0.0, 0.0],
             'f1_B': [0.0, 1.0, 0.0, np.nan, 0.0, 1.0],
@@ -54,7 +54,7 @@ class TestGenDummies:
 
     def test_basic_dataframe_input_defaults(self, sample_dataframe_single_col):
         """Test basic single-column DataFrame input with defaults."""
-        result = get_multilabel_dummies_robust(sample_dataframe_single_col, prefix='f1', convert_to_float=True)
+        result = ch_get_dummies(sample_dataframe_single_col, prefix='f1', convert_to_float=True)
         expected = pd.DataFrame({
             'f1_A': [1.0, 0.0, 1.0, np.nan, 0.0, 0.0],
             'f1_B': [0.0, 1.0, 0.0, np.nan, 0.0, 1.0],
@@ -65,7 +65,7 @@ class TestGenDummies:
 
     def test_process_na_false(self, sample_series):
         """Test with process_na=False and convert_to_float=False."""
-        result = get_multilabel_dummies_robust(sample_series, prefix='f1', process_na=False, convert_to_float=False)
+        result = ch_get_dummies(sample_series, prefix='f1', process_na=False, convert_to_float=False)
         # Expect integer type (often uint8 from get_dummies, but check result)
         expected = pd.DataFrame({
             'f1_A': [1, 0, 1, 0, 0, 0],
@@ -77,7 +77,7 @@ class TestGenDummies:
 
     def test_process_na_false_convert_true(self, sample_series):
         """Test with process_na=False and convert_to_float=True."""
-        result = get_multilabel_dummies_robust(sample_series, prefix='f1', process_na=False, convert_to_float=True)
+        result = ch_get_dummies(sample_series, prefix='f1', process_na=False, convert_to_float=True)
         expected = pd.DataFrame({
             'f1_A': [1.0, 0.0, 1.0, 0.0, 0.0, 0.0],
             'f1_B': [0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
@@ -89,7 +89,7 @@ class TestGenDummies:
     def test_convert_to_float_false_no_na(self):
         """Test convert_to_float=False with data having no NaNs."""
         series_no_nan = pd.Series(['A', 'B', 'A', 'B', 'C'], index=[1, 2, 3, 4, 5])
-        result = get_multilabel_dummies_robust(series_no_nan, prefix='f1', process_na=False, convert_to_float=False)
+        result = ch_get_dummies(series_no_nan, prefix='f1', process_na=False, convert_to_float=False)
         assert not pd.api.types.is_float_dtype(result.dtypes.iloc[0])
         # Check if it's integer or boolean type
         assert pd.api.types.is_integer_dtype(result.dtypes.iloc[0]) or pd.api.types.is_bool_dtype(result.dtypes.iloc[0])
@@ -104,12 +104,12 @@ class TestGenDummies:
     def test_type_error_invalid_input(self):
         """Test TypeError for non-Series/DataFrame input."""
         with pytest.raises(TypeError, match="Input 'df' must be a pandas Series or DataFrame."):
-            get_multilabel_dummies_robust([1, 2, 3], prefix='f1') # Pass a list
+            ch_get_dummies([1, 2, 3], prefix='f1') # Pass a list
 
     def test_empty_input_series(self):
         """Test with an empty Series."""
         s = pd.Series([], dtype=object, index=pd.Index([], name='empty_idx'))
-        result = get_multilabel_dummies_robust(s, prefix='empty')
+        result = ch_get_dummies(s, prefix='empty')
         assert result.empty
         assert result.index.equals(s.index)
         assert isinstance(result, pd.DataFrame)
@@ -117,7 +117,7 @@ class TestGenDummies:
     def test_empty_input_dataframe(self):
         """Test with an empty single-column DataFrame."""
         df = pd.DataFrame({'col': []}, index=pd.Index([], name='empty_idx'))
-        result = get_multilabel_dummies_robust(df, prefix='empty')
+        result = ch_get_dummies(df, prefix='empty')
         assert result.empty
         assert result.index.equals(df.index)
         assert isinstance(result, pd.DataFrame)
@@ -144,7 +144,7 @@ class TestGenDummiesFromCombinedColumns:
     def test_basic_combination_defaults(self, sample_dataframe_multi_col):
         """Test combining columns with default options (process_na=True, float=True)."""
         cols = ['proc1', 'proc2', 'proc3']
-        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, 
+        result = ch_get_dummies(sample_dataframe_multi_col, cols, 
                                     prefix='proc')
         expected = pd.DataFrame({
             # Row 102 (index 2): All proc are None -> NaN
@@ -159,7 +159,7 @@ class TestGenDummiesFromCombinedColumns:
     def test_basic_combination_float(self, sample_dataframe_multi_col):
         """Test combining columns with default options (process_na=True, float=True)."""
         cols = ['proc1', 'proc2', 'proc3']
-        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, 
+        result = ch_get_dummies(sample_dataframe_multi_col, cols, 
                                     prefix='proc', convert_to_float=True)
         expected = pd.DataFrame({
             # Row 102 (index 2): All proc are None -> NaN
@@ -173,7 +173,7 @@ class TestGenDummiesFromCombinedColumns:
     def test_combination_process_na_false_float_false(self, sample_dataframe_multi_col):
         """Test combining columns with process_na=False and convert_to_float=False."""
         cols = ['proc1', 'proc2', 'proc3']
-        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, 
+        result = ch_get_dummies(sample_dataframe_multi_col, cols, 
                                     prefix='proc', process_na=False)
         expected = pd.DataFrame({
             # Row 102 (index 2): All proc are None -> 0
@@ -187,7 +187,7 @@ class TestGenDummiesFromCombinedColumns:
     def test_combination_process_na_false_float_true(self, sample_dataframe_multi_col):
         """Test combining columns with process_na=False and convert_to_float=True."""
         cols = ['proc1', 'proc2', 'proc3']
-        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, prefix='proc',
+        result = ch_get_dummies(sample_dataframe_multi_col, cols, prefix='proc',
                                     process_na=False, convert_to_float=True)
         expected = pd.DataFrame({
             'proc_A': [1.0, 1.0, 0.0, 0.0, 1.0, 0.0],
@@ -199,20 +199,20 @@ class TestGenDummiesFromCombinedColumns:
 
     def test_empty_columns_to_combine(self, sample_dataframe_multi_col):
         """Test providing an empty list for columns_to_combine."""
-        res1 = get_multilabel_dummies_robust(sample_dataframe_multi_col, [], prefix='proc')
-        res2 = get_multilabel_dummies_robust(sample_dataframe_multi_col, sample_dataframe_multi_col.columns, prefix='proc', process_na=False)
+        res1 = ch_get_dummies(sample_dataframe_multi_col, [], prefix='proc')
+        res2 = ch_get_dummies(sample_dataframe_multi_col, sample_dataframe_multi_col.columns, prefix='proc', process_na=False)
         pd.testing.assert_frame_equal(res1, res2)
 
     def test_columns_with_only_nans_rows(self, sample_dataframe_multi_col):
         """Test rows where the selected columns only contain NaNs."""
         # Row 102 and 105 have only NaNs in proc1, proc2, proc3
         cols = ['proc1', 'proc2', 'proc3']
-        result_na_true = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, prefix='proc', process_na=True)
+        result_na_true = ch_get_dummies(sample_dataframe_multi_col, cols, prefix='proc', process_na=True)
         assert result_na_true.loc[102].isnull().all()
         assert result_na_true.loc[105].isnull().all()
         assert not result_na_true.loc[100].isnull().any() # Row 100 should not be all NaN
 
-        result_na_false = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, prefix='proc', process_na=False)
+        result_na_false = ch_get_dummies(sample_dataframe_multi_col, cols, prefix='proc', process_na=False)
         assert (result_na_false.loc[102] == 0).all()
         assert (result_na_false.loc[105] == 0).all()
         assert not (result_na_false.loc[100] == 0).all() # Row 100 should have some 1s
@@ -220,45 +220,7 @@ class TestGenDummiesFromCombinedColumns:
     def test_empty_input_dataframe(self):
         """Test with an empty input DataFrame."""
         df_empty = pd.DataFrame({'proc1': [], 'proc2': []}, index=pd.Index([], name='empty_idx'))
-        result = get_multilabel_dummies_robust(df_empty, ['proc1', 'proc2'], prefix='p')
+        result = ch_get_dummies(df_empty, ['proc1', 'proc2'], prefix='p')
         assert result.empty
         assert result.index.equals(df_empty.index)
         assert isinstance(result, pd.DataFrame)
-
-
-    # def test_key_error_invalid_column(self, sample_dataframe_multi_col):
-    #     """Test KeyError when a column in columns_to_combine doesn't exist."""
-    #     with pytest.raises(KeyError, match="not found in DataFrame"):
-    #         gen_dummies_from_combined_columns(sample_dataframe_multi_col, ['proc1', 'invalid_col'], prefix='p')
-
-    # def test_type_error_df_not_dataframe(self):
-    #     """Test TypeError when df is not a DataFrame."""
-    #     with pytest.raises(TypeError, match="Input 'df' must be a pandas DataFrame."):
-    #         gen_dummies_from_combined_columns(['a'], ['col'], prefix='p')
-
-    # def test_type_error_columns_not_list(self, sample_dataframe_multi_col):
-    #     """Test TypeError when columns_to_combine is not a list."""
-    #     with pytest.raises(TypeError, match="Input 'columns_to_combine' must be a list"):
-    #         gen_dummies_from_combined_columns(sample_dataframe_multi_col, 'proc1', prefix='p')
-
-    # def test_different_prefix_sep(self, sample_dataframe_multi_col):
-    #     """Test using a different prefix_sep."""
-    #     cols = ['proc1', 'proc2'] # Use subset for simplicity
-    #     result = gen_dummies_from_combined_columns(sample_dataframe_multi_col, cols, prefix='proc', prefix_sep='::')
-    #     # Expected columns based on values in proc1/proc2: A, B, C
-    #     expected_cols = ['proc::A', 'proc::B', 'proc::C']
-    #     assert all(col in result.columns for col in expected_cols)
-    #     assert result.shape[1] == len(expected_cols) # Ensure no extra columns
-
-    # def test_no_non_nan_data_in_columns(self):
-    #     """Test case where selected columns exist but contain only NaNs."""
-    #     df = pd.DataFrame({'c1': [None, None], 'c2': [np.nan, np.nan]}, index=[5, 6])
-    #     result_na_true = gen_dummies_from_combined_columns(df, ['c1', 'c2'], prefix='p', process_na=True)
-    #     # Expect empty df with correct index, as no categories found, but NaNs processed
-    #     expected_na_true = pd.DataFrame(index=df.index, dtype=float)
-    #     pd.testing.assert_frame_equal(result_na_true, expected_na_true)
-
-    #     result_na_false = gen_dummies_from_combined_columns(df, ['c1', 'c2'], prefix='p', process_na=False)
-    #     # Expect empty df with correct index and 0 columns
-    #     expected_na_false = pd.DataFrame(index=df.index)
-    #     pd.testing.assert_frame_equal(result_na_false, expected_na_false, check_dtype=False)
