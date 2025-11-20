@@ -158,7 +158,8 @@ def gen_dummies_from_combined_columns(
     return dummy_df
 
 
-def get_multilabel_dummies_robust(df, columns, prefix=None, extra_na_strings=None, convert_to_float=False):
+def get_multilabel_dummies_robust(df, columns, prefix=None, extra_na_strings=None, 
+                                    process_na=True, convert_to_float=False):
     """
     Converts multiple columns into dummy columns, handling dirty "null" strings.
     
@@ -177,23 +178,29 @@ def get_multilabel_dummies_robust(df, columns, prefix=None, extra_na_strings=Non
         "NA", "na", 
         "", " ", "?"
     ]
+
+    if (columns is None) or len(columns) == 0:
+        columns = df.columns
     
     if extra_na_strings:
         null_strings.extend(extra_na_strings)
 
-    # 2. Work on a copy to avoid modifying the user's original dataframe
-    subset = df[columns].copy()
+    if process_na:
+        # 2. Work on a copy to avoid modifying the user's original dataframe
+        subset = df[columns].copy()
 
-    # 3. Normalize Nulls: Replace string representations with actual np.nan
-    subset = subset.replace(null_strings, np.nan)
+        # 3. Normalize Nulls: Replace string representations with actual np.nan
+        subset = subset.replace(null_strings, np.nan)
 
-    # 4. Identify rows where EVERYTHING is missing (after cleaning)
-    # This is the crucial mask for propagation
-    all_na_mask = subset.isna().all(axis=1)
+        # 4. Identify rows where EVERYTHING is missing (after cleaning)
+        # This is the crucial mask for propagation
+        all_na_mask = subset.isna().all(axis=1)
 
-    # 5. Stack (Wide -> Long)
-    # stack() drops np.nan automatically
-    stacked = subset.stack()
+        # 5. Stack (Wide -> Long)
+        # stack() drops np.nan automatically
+        stacked = subset.stack()
+    else:
+        stacked = df[columns].stack()
 
     # 6. Generate Dummies
     dummies = pd.get_dummies(stacked, prefix='', prefix_sep='', dtype='int8')
@@ -204,14 +211,17 @@ def get_multilabel_dummies_robust(df, columns, prefix=None, extra_na_strings=Non
     # 8. Reindex to recover rows dropped by stack()
     dummies = dummies.reindex(df.index, fill_value=0)
 
-    # 9. Convert to Nullable Boolean and Apply Mask
-    dummies = dummies.astype('boolean')
-    dummies.loc[all_na_mask] = pd.NA
+    if convert_to_float:
+        dummies = dummies.astype(float)
+    else:
+        dummies = dummies.astype('boolean')
+    
+    if process_na:
+        dummies.loc[all_na_mask] = pd.NA
     
     if prefix:
         dummies = dummies.add_prefix(f"{prefix}_")
     
-    if convert_to_float:
-        dummies = dummies.astype(float)
+
 
     return dummies

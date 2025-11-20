@@ -150,6 +150,21 @@ class TestGenDummiesFromCombinedColumns:
         """Test combining columns with default options (process_na=True, float=True)."""
         cols = ['proc1', 'proc2', 'proc3']
         result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, 
+                                    prefix='proc')
+        expected = pd.DataFrame({
+            # Row 102 (index 2): All proc are None -> NaN
+            # Row 105 (index 5): All proc are None -> NaN
+            'proc_A': [True, True, pd.NA, False, True, pd.NA],
+            'proc_B': [False, True, pd.NA, False, True, pd.NA],
+            'proc_C': [True, False, pd.NA, True, False, pd.NA],
+        }, index=sample_dataframe_multi_col.index, dtype='boolean')
+        pd.testing.assert_frame_equal(result, expected)
+
+
+    def test_basic_combination_float(self, sample_dataframe_multi_col):
+        """Test combining columns with default options (process_na=True, float=True)."""
+        cols = ['proc1', 'proc2', 'proc3']
+        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, 
                                     prefix='proc', convert_to_float=True)
         expected = pd.DataFrame({
             # Row 102 (index 2): All proc are None -> NaN
@@ -160,63 +175,60 @@ class TestGenDummiesFromCombinedColumns:
         }, index=sample_dataframe_multi_col.index, dtype='float')
         pd.testing.assert_frame_equal(result, expected)
 
-    # def test_combination_process_na_false_float_false(self, sample_dataframe_multi_col):
-    #     """Test combining columns with process_na=False and convert_to_float=False."""
-    #     cols = ['proc1', 'proc2', 'proc3']
-    #     result = gen_dummies_from_combined_columns(sample_dataframe_multi_col, cols, prefix='proc',
-    #                                               process_na=False, convert_to_float=False)
-    #     # Expect integer type (e.g., int64 from groupby.max, or uint8/int if converted)
-    #     expected = pd.DataFrame({
-    #         # Row 102 (index 2): All proc are None -> 0
-    #         # Row 105 (index 5): All proc are None -> 0
-    #         'proc_A': [1, 1, 0, 0, 1, 0],
-    #         'proc_B': [0, 1, 0, 0, 1, 0],
-    #         'proc_C': [1, 0, 0, 1, 0, 0],
-    #     }, index=sample_dataframe_multi_col.index).astype(result.dtypes.iloc[0]) # Match exact type
-    #     pd.testing.assert_frame_equal(result, expected)
+    def test_combination_process_na_false_float_false(self, sample_dataframe_multi_col):
+        """Test combining columns with process_na=False and convert_to_float=False."""
+        cols = ['proc1', 'proc2', 'proc3']
+        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, 
+                                    prefix='proc', process_na=False)
+        expected = pd.DataFrame({
+            # Row 102 (index 2): All proc are None -> 0
+            # Row 105 (index 5): All proc are None -> 0
+            'proc_A': [True, True, False, False, True, False],
+            'proc_B': [False, True, False, False, True, False],
+            'proc_C': [True, False, False, True, False, False],
+        }, index=sample_dataframe_multi_col.index, dtype='boolean')
+        pd.testing.assert_frame_equal(result, expected)
 
-    # def test_combination_process_na_false_float_true(self, sample_dataframe_multi_col):
-    #     """Test combining columns with process_na=False and convert_to_float=True."""
-    #     cols = ['proc1', 'proc2', 'proc3']
-    #     result = gen_dummies_from_combined_columns(sample_dataframe_multi_col, cols, prefix='proc',
-    #                                               process_na=False, convert_to_float=True)
-    #     expected = pd.DataFrame({
-    #         'proc_A': [1.0, 1.0, 0.0, 0.0, 1.0, 0.0],
-    #         'proc_B': [0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
-    #         'proc_C': [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-    #     }, index=sample_dataframe_multi_col.index, dtype=float)
-    #     pd.testing.assert_frame_equal(result, expected)
+    def test_combination_process_na_false_float_true(self, sample_dataframe_multi_col):
+        """Test combining columns with process_na=False and convert_to_float=True."""
+        cols = ['proc1', 'proc2', 'proc3']
+        result = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, prefix='proc',
+                                    process_na=False, convert_to_float=True)
+        expected = pd.DataFrame({
+            'proc_A': [1.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            'proc_B': [0.0, 1.0, 0.0, 0.0, 1.0, 0.0],
+            'proc_C': [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+        }, index=sample_dataframe_multi_col.index, dtype=float)
+        pd.testing.assert_frame_equal(result, expected)
 
 
-    # def test_empty_columns_to_combine(self, sample_dataframe_multi_col):
-    #     """Test providing an empty list for columns_to_combine."""
-    #     with pytest.warns(UserWarning, match="'columns_to_combine' is empty"):
-    #         result = gen_dummies_from_combined_columns(sample_dataframe_multi_col, [], prefix='proc')
-    #     assert result.empty
-    #     assert result.index.equals(sample_dataframe_multi_col.index)
-    #     assert isinstance(result, pd.DataFrame)
+    def test_empty_columns_to_combine(self, sample_dataframe_multi_col):
+        """Test providing an empty list for columns_to_combine."""
+        res1 = get_multilabel_dummies_robust(sample_dataframe_multi_col, [], prefix='proc')
+        res2 = get_multilabel_dummies_robust(sample_dataframe_multi_col, sample_dataframe_multi_col.columns, prefix='proc', process_na=False)
+        pd.testing.assert_frame_equal(res1, res2)
 
-    # def test_columns_with_only_nans_rows(self, sample_dataframe_multi_col):
-    #     """Test rows where the selected columns only contain NaNs."""
-    #     # Row 102 and 105 have only NaNs in proc1, proc2, proc3
-    #     cols = ['proc1', 'proc2', 'proc3']
-    #     result_na_true = gen_dummies_from_combined_columns(sample_dataframe_multi_col, cols, prefix='proc', process_na=True)
-    #     assert result_na_true.loc[102].isnull().all()
-    #     assert result_na_true.loc[105].isnull().all()
-    #     assert not result_na_true.loc[100].isnull().any() # Row 100 should not be all NaN
+    def test_columns_with_only_nans_rows(self, sample_dataframe_multi_col):
+        """Test rows where the selected columns only contain NaNs."""
+        # Row 102 and 105 have only NaNs in proc1, proc2, proc3
+        cols = ['proc1', 'proc2', 'proc3']
+        result_na_true = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, prefix='proc', process_na=True)
+        assert result_na_true.loc[102].isnull().all()
+        assert result_na_true.loc[105].isnull().all()
+        assert not result_na_true.loc[100].isnull().any() # Row 100 should not be all NaN
 
-    #     result_na_false = gen_dummies_from_combined_columns(sample_dataframe_multi_col, cols, prefix='proc', process_na=False)
-    #     assert (result_na_false.loc[102] == 0).all()
-    #     assert (result_na_false.loc[105] == 0).all()
-    #     assert not (result_na_false.loc[100] == 0).all() # Row 100 should have some 1s
+        result_na_false = get_multilabel_dummies_robust(sample_dataframe_multi_col, cols, prefix='proc', process_na=False)
+        assert (result_na_false.loc[102] == 0).all()
+        assert (result_na_false.loc[105] == 0).all()
+        assert not (result_na_false.loc[100] == 0).all() # Row 100 should have some 1s
 
-    # def test_empty_input_dataframe(self):
-    #     """Test with an empty input DataFrame."""
-    #     df_empty = pd.DataFrame({'proc1': [], 'proc2': []}, index=pd.Index([], name='empty_idx'))
-    #     result = gen_dummies_from_combined_columns(df_empty, ['proc1', 'proc2'], prefix='p')
-    #     assert result.empty
-    #     assert result.index.equals(df_empty.index)
-    #     assert isinstance(result, pd.DataFrame)
+    def test_empty_input_dataframe(self):
+        """Test with an empty input DataFrame."""
+        df_empty = pd.DataFrame({'proc1': [], 'proc2': []}, index=pd.Index([], name='empty_idx'))
+        result = get_multilabel_dummies_robust(df_empty, ['proc1', 'proc2'], prefix='p')
+        assert result.empty
+        assert result.index.equals(df_empty.index)
+        assert isinstance(result, pd.DataFrame)
 
 
     # def test_key_error_invalid_column(self, sample_dataframe_multi_col):
