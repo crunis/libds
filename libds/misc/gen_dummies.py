@@ -10,7 +10,7 @@ def gen_dummies(
     prefix: str,
     prefix_sep: str = '_',
     process_na: bool = True,
-    convert_to_float: bool = True
+    convert_to_float: bool = False
 ) -> pd.DataFrame:
     """
     Generates dummy (indicator) variables for a single feature (Series or 1-col DF).
@@ -22,16 +22,15 @@ def gen_dummies(
         feature_data: Input pandas Series or single-column DataFrame.
         prefix: String prefix for the new dummy column names.
         prefix_sep: Separator used between prefix and value in dummy column names.
-        process_na: If True, handle NaNs by setting all dummy columns for NaN
-                    rows to NaN. Will use boolean type.
-        convert_to_float: If True, convert dummy columns to float dtype. This
+        process_na(default: True): If True, handle NaNs by setting all dummy columns for NaN
+                    rows to NaN. Will use boolean type or float if specified.
+        convert_to_float(default: False): If True, convert dummy columns to float dtype. This
                     usually means that from True/False goes to 1/0
 
     Returns:
         A pandas DataFrame containing the dummy variables for the single feature.
 
     Raises:
-        ValueError: If process_na is True but convert_to_float is False.
         ValueError: If input feature_data is a DataFrame with more than one column.
     """
     if isinstance(feature_data, pd.DataFrame):
@@ -72,7 +71,7 @@ def gen_dummies_from_combined_columns(
     prefix: str,
     prefix_sep: str = '_',
     process_na: bool = True,
-    convert_to_float: bool = True
+    convert_to_float: bool = False
 ) -> pd.DataFrame:
     """
     Generates one set of dummy variables by treating multiple input columns
@@ -101,7 +100,6 @@ def gen_dummies_from_combined_columns(
         indexed like the original DataFrame 'df'.
 
     Raises:
-        ValueError: If process_na is True but convert_to_float is False.
         KeyError: If any column in columns_to_combine is not in df.
         TypeError: If df is not a DataFrame or columns_to_combine is not a list.
     """
@@ -112,9 +110,6 @@ def gen_dummies_from_combined_columns(
     if not columns_to_combine:
         warnings.warn("'columns_to_combine' is empty. Returning an empty DataFrame.")
         return pd.DataFrame(index=df.index)
-
-    if process_na and not convert_to_float:
-        raise ValueError("process_na=True requires convert_to_float=True")
 
     # Select the relevant subset and check columns exist
     try:
@@ -162,3 +157,61 @@ def gen_dummies_from_combined_columns(
 
     return dummy_df
 
+
+def get_multilabel_dummies_robust(df, columns, prefix=None, extra_na_strings=None, convert_to_float=False):
+    """
+    Converts multiple columns into dummy columns, handling dirty "null" strings.
+    
+    Args:
+        df: Input DataFrame
+        columns: List of column names to encode
+        prefix: Optional prefix for output columns
+        extra_na_strings: List of additional strings to treat as NaN (e.g. ["Not Applicable"])
+    """
+    # 1. Define what looks like a "Null" string
+    # These are common artifacts in CSVs/Excel files
+    null_strings = [
+        "None", "none", "NONE", 
+        "NaN", "nan", "NAN", 
+        "Null", "null", "NULL", 
+        "NA", "na", 
+        "", " ", "?"
+    ]
+    
+    if extra_na_strings:
+        null_strings.extend(extra_na_strings)
+
+    # 2. Work on a copy to avoid modifying the user's original dataframe
+    subset = df[columns].copy()
+
+    # 3. Normalize Nulls: Replace string representations with actual np.nan
+    subset = subset.replace(null_strings, np.nan)
+
+    # 4. Identify rows where EVERYTHING is missing (after cleaning)
+    # This is the crucial mask for propagation
+    all_na_mask = subset.isna().all(axis=1)
+
+    # 5. Stack (Wide -> Long)
+    # stack() drops np.nan automatically
+    stacked = subset.stack()
+
+    # 6. Generate Dummies
+    dummies = pd.get_dummies(stacked, prefix='', prefix_sep='', dtype='int8')
+
+    # 7. Aggregate (Group by original index and take Max)
+    dummies = dummies.groupby(level=0).max()
+
+    # 8. Reindex to recover rows dropped by stack()
+    dummies = dummies.reindex(df.index, fill_value=0)
+
+    # 9. Convert to Nullable Boolean and Apply Mask
+    dummies = dummies.astype('boolean')
+    dummies.loc[all_na_mask] = pd.NA
+    
+    if prefix:
+        dummies = dummies.add_prefix(f"{prefix}_")
+    
+    if convert_to_float:
+        dummies = dummies.astype(float)
+
+    return dummies
