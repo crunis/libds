@@ -23,7 +23,7 @@ def gen_dummies(
         prefix: String prefix for the new dummy column names.
         prefix_sep: Separator used between prefix and value in dummy column names.
         process_na: If True, handle NaNs by setting all dummy columns for NaN
-                    rows to NaN. Requires convert_to_float=True.
+                    rows to NaN. Will use boolean type.
         convert_to_float: If True, convert dummy columns to float dtype. This
                     usually means that from True/False goes to 1/0
 
@@ -34,9 +34,6 @@ def gen_dummies(
         ValueError: If process_na is True but convert_to_float is False.
         ValueError: If input feature_data is a DataFrame with more than one column.
     """
-    if process_na and not convert_to_float:
-        raise ValueError("process_na=True requires convert_to_float=True")
-
     if isinstance(feature_data, pd.DataFrame):
         if feature_data.shape[1] != 1:
             raise ValueError("Input 'feature_data' must be a pandas Series or a single-column DataFrame.")
@@ -54,7 +51,9 @@ def gen_dummies(
     dummy_df = pd.get_dummies(feature_series, prefix=prefix, dummy_na=process_na, prefix_sep=prefix_sep)
 
     if convert_to_float:
-         dummy_df = dummy_df.astype(float)
+        dummy_df = dummy_df.astype(float)
+    else:
+        dummy_df = dummy_df.astype('boolean')
 
     # Apply specific NaN processing AFTER potential type conversion
     if process_na:

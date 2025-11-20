@@ -52,6 +52,7 @@ class TestGenDummies:
         }, index=sample_dataframe_single_col.index, dtype=float)
         pd.testing.assert_frame_equal(result, expected)
 
+
     def test_process_na_false(self, sample_series):
         """Test with process_na=False and convert_to_float=False."""
         result = gen_dummies(sample_series, prefix='f1', process_na=False, convert_to_float=False)
@@ -63,6 +64,7 @@ class TestGenDummies:
         }, index=sample_series.index).astype(result.dtypes.iloc[0]) # Match the exact integer type returned
         pd.testing.assert_frame_equal(result, expected)
 
+
     def test_process_na_false_convert_true(self, sample_series):
         """Test with process_na=False and convert_to_float=True."""
         result = gen_dummies(sample_series, prefix='f1', process_na=False, convert_to_float=True)
@@ -72,6 +74,7 @@ class TestGenDummies:
             'f1_C': [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
         }, index=sample_series.index, dtype=float)
         pd.testing.assert_frame_equal(result, expected)
+
 
     def test_convert_to_float_false_no_na(self):
         """Test convert_to_float=False with data having no NaNs."""
@@ -87,10 +90,6 @@ class TestGenDummies:
         }, index=series_no_nan.index).astype(result.dtypes.iloc[0]) # Match exact type
         pd.testing.assert_frame_equal(result, expected)
 
-    def test_value_error_na_true_float_false(self, sample_series):
-        """Test ValueError is raised for invalid flag combination."""
-        with pytest.raises(ValueError, match="process_na=True requires convert_to_float=True"):
-            gen_dummies(sample_series, prefix='f1', process_na=True, convert_to_float=False)
 
     def test_value_error_multi_column_dataframe(self, sample_dataframe_multi_col):
         """Test ValueError is raised for multi-column DataFrame input."""
