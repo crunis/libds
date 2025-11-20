@@ -60,9 +60,8 @@ def colToTrueFalse(values, TF=[1, 0], to_boolean=False):
     """
     if colIsTrueFalse(values):
         values = values.map(lambda value: toTrueFalse(value, TF))
-    
-    if to_boolean:
-        values = values.astype('boolean')
+        if to_boolean:
+            values = values.astype('boolean')
     
     return values
 
