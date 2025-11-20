@@ -164,6 +164,30 @@ def test_colToTrueFalse_empty_series():
     result_series = colToTrueFalse(input_series)
     pd.testing.assert_series_equal(result_series, expected_series)
 
+def test_colToTrueFalse_to_boolean_option():
+    """Tests colToTrueFalse with to_boolean=True to ensure boolean output type"""
+    input_series = pd.Series(['true', 'False', 1, '0', None, np.nan, 'yes', 'no'])
+    expected_series = pd.Series([True, False, True, False, pd.NA, pd.NA, True, False], dtype=object)
+    result_series = colToTrueFalse(input_series, to_boolean=True)
+    pd.testing.assert_series_equal(result_series, expected_series, check_dtype=False, check_names=False)
+
+def test_colToTrueFalse_to_boolean_option_with_custom_tf():
+    """Tests colToTrueFalse with to_boolean=True and custom TF (e.g., ['Y', 'N'])"""
+    input_series = pd.Series(['yes', 'no', 'Yes', 'No', 1, 0, None, np.nan])
+    # When to_boolean=True, custom TF values are ignored for the output type,
+    # and converted to standard booleans.
+    expected_series = pd.Series([True, False, True, False, True, False, pd.NA, pd.NA], dtype=object)
+    result_series = colToTrueFalse(input_series, TF=[True, False], to_boolean=True)
+    pd.testing.assert_series_equal(result_series, expected_series, check_dtype=False, check_names=False)
+
+def test_colToTrueFalse_all_none_nan_series():
+    """Tests conversion with a Series containing only None and NaN"""
+    input_series = pd.Series([None, np.nan, None], dtype=object)
+    expected_series = pd.Series([pd.NA, pd.NA, pd.NA], dtype='boolean') # Should remain unchanged
+    result_series = colToTrueFalse(input_series, to_boolean=True)
+    pd.testing.assert_series_equal(result_series, expected_series)
+
+
 # def test_colToTrueFalse_all_none_nan_series():
 #     """Tests conversion with a Series containing only None and NaN"""
 #     input_series = pd.Series([None, np.nan, None], dtype=object)

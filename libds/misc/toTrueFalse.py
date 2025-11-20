@@ -44,7 +44,7 @@ def colIsTrueFalse(values):
     )
 
 
-def colToTrueFalse(values, TF=[1, 0]):
+def colToTrueFalse(values, TF=[1, 0], to_boolean=False):
     """Converts a Pandas Series to True/False if all its values are
     recognized boolean representations.
 
@@ -59,7 +59,10 @@ def colToTrueFalse(values, TF=[1, 0]):
         or the original Series if conversion is not applicable.
     """
     if colIsTrueFalse(values):
-        return values.map(lambda value: toTrueFalse(value, TF))
+        values = values.map(lambda value: toTrueFalse(value, TF))
+    
+    if to_boolean:
+        values = values.astype('boolean')
     
     return values
 
