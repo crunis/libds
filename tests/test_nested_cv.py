@@ -60,7 +60,7 @@ def test_convert_param_definition_to_optuna_trial():
     ncv = NestedCV()
 
     class MockTrial:
-        def suggest_int(self, name, low, high):
+        def suggest_int(self, name, low, high, log=False):
             return f"int_{name}_{low}_{high}"
         def suggest_float(self, name, low, high, log=False):
             return f"float_{name}_{low}_{high}_{log}"
@@ -78,7 +78,7 @@ def test_convert_param_definition_to_optuna_trial():
     mock_trial = MockTrial()
 
     # Test int
-    param_def_int = ['param_int', 'int', 1, 10]
+    param_def_int = ['param_int', 'int', 1, 10, False]
     result_int = ncv._convert_param_definition_to_optuna_trial(mock_trial, param_def_int)
     assert result_int == "int_param_int_1_10"
 
@@ -129,9 +129,9 @@ def test_nested_cv_full_run():
     
     # Define parameter definitions for testing
     params_definitions = [
-        ['n_estimators', 'int', 10, 20],
+        ['n_estimators', 'int', 10, 20, False],
         ['learning_rate', 'float', 0.05, 0.1, True],
-        ['rfe__n_features_to_select', 'int', 2, 3],
+        ['rfe__n_features_to_select', 'int', 2, 3, False],
     ]
     
     res = ncv.nested_cv(ncv._create_rfe_xgb, params_definitions, X, y)
@@ -163,9 +163,9 @@ def test_get_cms():
 
     # Define parameter definitions for testing
     params_definitions = [
-        ['n_estimators', 'int', 10, 20],
+        ['n_estimators', 'int', 10, 20, False],
         ['learning_rate', 'float', 0.05, 0.1, True],
-        ['rfe__n_features_to_select', 'int', 2, 3],
+        ['rfe__n_features_to_select', 'int', 2, 3, False],
     ]
 
     res = ncv.nested_cv(ncv._create_rfe_xgb, params_definitions, X, y)
@@ -229,9 +229,9 @@ def test_nested_cv_get_features():
 
     # Define parameter definitions for testing
     params_definitions = [
-        ['n_estimators', 'int', 10, 20],
+        ['n_estimators', 'int', 10, 20, False],
         ['learning_rate', 'float', 0.05, 0.1, True],
-        ['rfe__n_features_to_select', 'int', 2, 3],
+        ['rfe__n_features_to_select', 'int', 2, 3, False],
     ]
 
     res = ncv.nested_cv(ncv._create_rfe_xgb, params_definitions, X, y, feature_names=['f1', 'f2', 'f3', 'f4', 'f5', 'f6'])

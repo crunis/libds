@@ -64,12 +64,14 @@ class NestedCV:
         {'param1', 'int', min_value, max_value, False} => trial.suggest_int('param1', min_value, max_value)
         """
 
+        # TODO: int should accept logarithmic parameter
+
         if param_definition[1] == 'float':
             optuna_trial_func = trial.suggest_float(
                 param_definition[0], param_definition[2], param_definition[3], log=param_definition[4])
         elif param_definition[1] == 'int':
             optuna_trial_func = trial.suggest_int(
-                param_definition[0], param_definition[2], param_definition[3])
+                param_definition[0], param_definition[2], param_definition[3], log=param_definition[4])
         elif param_definition[1] == 'categorical':
             optuna_trial_func = trial.suggest_categorical(
                 param_definition[0], param_definition[2])
@@ -108,7 +110,7 @@ class NestedCV:
             n_jobs=-1
         )
         
-        return study.best_params, study.get_trials()
+        return study.best_params, len(study.trials)
 
     def _get_best_features(self, pipeline, feature_names):
         # TODO: this will break with other pipelines
