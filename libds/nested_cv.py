@@ -3,7 +3,7 @@ import optuna
 from sklearn.metrics import confusion_matrix
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 from sklearn.feature_selection import RFE
-from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.model_selection import KFold, StratifiedKFold, cross_validate
 from sklearn.pipeline import Pipeline
 import xgboost
 
@@ -19,6 +19,7 @@ class NestedCV:
             timeout=60*60,
             inner_splits=3,
             outer_splits=4,
+            stratified=True,
             scoring='roc_auc',
             progress_bar=False,
             verbose=0
@@ -30,12 +31,17 @@ class NestedCV:
         self.scoring = scoring
         self.progress_bar = progress_bar
         self.verbose = verbose
+
+        if stratified:
+            self.cv = StratifiedKFold
+        else:
+            self.cv = KFold
     
     def _cross_validate(self, model, X, y):
         """
         Runs crossvalidation with model on X, y
         """
-        cv = StratifiedKFold(n_splits=self.inner_splits)
+        cv = self.cv(n_splits=self.inner_splits)
         results = cross_validate(model, X, y,
                     n_jobs=-1, cv=cv, scoring=self.scoring,
                     return_estimator=True, return_train_score=True
@@ -130,7 +136,7 @@ class NestedCV:
         cms       = list()
         info      = list()
         
-        cv = StratifiedKFold(n_splits=self.outer_splits)
+        cv = self.cv(n_splits=self.outer_splits)
         for n, (train_val_idx, test_idx) in enumerate(cv.split(X, y)):
             if self.verbose > 0:
                 print(f"Fold {n+1}/{self.outer_splits}")
