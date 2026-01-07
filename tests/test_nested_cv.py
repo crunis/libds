@@ -93,7 +93,7 @@ def test_convert_param_definition_to_optuna_trial():
     assert result_categorical == "categorical_param_cat_['a', 'b', 'c']"
 
 
-def test_find_best_hyperparams_with_optuna():
+def test_find_best_params_with_optuna():
     from sklearn.datasets import make_classification
     
     X, y = make_classification(n_samples=100, n_features=10, random_state=42)
@@ -107,7 +107,7 @@ def test_find_best_hyperparams_with_optuna():
         ['rfe__n_features_to_select', 'int', 2, 5, False],
     ]
     
-    best_params, total_trials = ncv._find_best_hyperparams_with_optuna(ncv._create_rfe_xgb, params_definitions, X, y)
+    best_params, total_trials = ncv._find_best_params_with_optuna(ncv._create_rfe_xgb, params_definitions, X, y)
     
     assert isinstance(best_params, dict)
     assert 'n_estimators' in best_params

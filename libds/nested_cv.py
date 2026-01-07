@@ -10,6 +10,8 @@ import xgboost
 from .metrics.stats import get_stats_from_ypred
 
 class NestedCV:
+    # TODO: Switch to control Stratified or not
+    # TODO: Switch to control class balance
 
     def __init__(
             self,
@@ -95,7 +97,7 @@ class NestedCV:
         return score
 
 
-    def _find_best_hyperparams_with_optuna(self, create_model_func, params_definitions, X, y):
+    def _find_best_params_with_optuna(self, create_model_func, params_definitions, X, y):
         """
         """
 
@@ -134,11 +136,11 @@ class NestedCV:
             X_train_val, X_test = X[train_val_idx], X[test_idx]
             y_train_val, y_test = y[train_val_idx], y[test_idx]
 
-            best_hyperparams, total_trials = self._find_best_hyperparams_with_optuna(
+            best_params, total_trials = self._find_best_params_with_optuna(
                 create_model_func, params_definitions, X_train_val, y_train_val
             )
 
-            pipeline = create_model_func(best_hyperparams)
+            pipeline = create_model_func(best_params)
             pipeline.fit(X_train_val, y_train_val)
 
             stats, cm = self.compute_stats(pipeline, X_test, y_test)
@@ -146,7 +148,7 @@ class NestedCV:
             cms.append(cm)
             info.append(
                 dict(
-                    best_hyperparams = best_hyperparams,
+                    best_params      = best_params,
                     total_trials     = total_trials,
                     best_features    = self._get_best_features(pipeline, feature_names)
                 )
