@@ -20,6 +20,7 @@ class NestedCV:
             inner_splits=3,
             outer_splits=4,
             scoring='roc_auc',
+            progress_bar=False,
             verbose=0
             ):
         self.trials = trials
@@ -27,6 +28,7 @@ class NestedCV:
         self.inner_splits = inner_splits
         self.outer_splits = outer_splits
         self.scoring = scoring
+        self.progress_bar = progress_bar
         self.verbose = verbose
     
     def _cross_validate(self, model, X, y):
@@ -108,7 +110,7 @@ class NestedCV:
             ),
             n_trials=self.trials,
             timeout=self.timeout,
-            show_progress_bar=False,
+            show_progress_bar=self.progress_bar,
             n_jobs=-1
         )
         
